@@ -1,0 +1,107 @@
+<template>
+  <article class="cafe_info_tab">
+    <div id="show_ai_button" @click="showAISummary">
+      <span>🤖 AI 요약 보기</span>
+    </div>
+    <div id="show_menu_button" @click="showMenu">
+      <span>📋 메뉴 보기</span>
+    </div>
+    <div id="seller_apply_button" @click="applySeller">
+      <span>👷 판매자 신청</span>
+    </div>
+    <div
+        class="cafe_info_bookmark"
+        id="bookmark_null"
+        v-if="!isBookmarked"
+        @click="addBookmark"
+    >
+      <img src="@/assets/images/icon/pin-angle.png" alt="" />
+    </div>
+    <div
+        class="cafe_info_bookmark"
+        id="bookmark_fill"
+        v-if="isBookmarked"
+        @click="deleteBookmark"
+    >
+      <img src="@/assets/images/icon/pin-angle-fill.png" alt="" />
+    </div>
+  </article>
+</template>
+
+<script>
+export default {
+  name: 'CafeInfoTab',
+  props: {
+    cafeInfo: {
+      type: Object,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      isBookmarked: false,
+    };
+  },
+  methods: {
+    showAISummary() {
+      alert('AI 요약 기능은 준비 중입니다.');
+    },
+    showMenu() {
+      alert('메뉴 보기 기능은 준비 중입니다.');
+    },
+    applySeller() {
+      alert('판매자 신청 기능은 준비 중입니다.');
+    },
+    addBookmark() {
+      this.isBookmarked = true;
+      alert('북마크가 추가되었습니다!');
+    },
+    deleteBookmark() {
+      this.isBookmarked = false;
+      alert('북마크가 삭제되었습니다!');
+    },
+  },
+};
+</script>
+
+<style scoped>
+.cafe_info_tab {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  top: -65px;
+  display: flex;
+  padding: 0 1em;
+}
+
+.cafe_info_tab div {
+  border-radius: 30px;
+  box-shadow: 3px 2px 4px 0px rgba(0,0,0,25%);
+  padding: 0.6em 1.2em;
+  margin-right: 1.2em;
+  cursor: pointer;
+  border: 1px solid #D9D9D9;
+}
+
+.cafe_info_tab .cafe_info_bookmark {
+  padding: 0.4em 0.4em;
+}
+
+.cafe_info_tab div span {
+  font-family: 'GodoB', sans-serif;
+  font-size: 1em;
+}
+
+.cafe_info_tab:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.cafe_info_line {
+  margin-top: 50px;
+  width: 1400px;
+  border-top: 1px solid #D9D9D9;
+}
+</style>
