@@ -2,7 +2,6 @@
   <swiper
       :loop="true"
       :pagination="{ clickable: true }"
-      :navigation="true"
       class="swiper"
   >
     <swiper-slide>
@@ -42,9 +41,8 @@ export default {
   width: 100%;
   max-width: 1400px;
   height: 20em;
-  background-color: #00a692;
+  background-color: #7A8CD1;
   border-radius: 0.9375em;
-  box-shadow: inset 0.1875em -0.25em 0.1875em 0 rgba(0, 0, 0, 0.25);
   z-index: 0;
 }
 
@@ -72,10 +70,17 @@ export default {
   margin: 0;
 }
 
+.swiper .swiper-wrapper .swiper-slide {
+  display: flex; /* 플렉스 박스로 설정 */
+  justify-content: center; /* 가로 방향 가운데 정렬 */
+  align-items: flex-end; /* 세로 방향 가운데 정렬 */
+}
+
 .swiper .swiper-wrapper .swiper-slide a img {
-  width: 100%;
+  width: auto;
+  height: 150px;
   object-fit: contain;
-  object-position: center bottom;
+  margin: 0 0 0.8rem;
 }
 
 .swiper-button-prev {

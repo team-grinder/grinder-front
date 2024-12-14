@@ -4,24 +4,21 @@
     <div class="cafe-list-divider"></div>
     <div v-if="loading" class="loading">불러오는 중...</div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
-    <div v-else class="cafe-list-info">
+    <div class="cafe-list-info">
       <div
           v-for="cafe in cafes"
-          :key="cafe.cafeId"
+          :key="cafe.id"
           class="cafe-card"
-          @click="navigateToCafe(cafe.cafeId)"
+          @click="navigateToCafe(cafe.id)"
       >
         <img
-            :src="cafe.cafeImageUrl || defaultImage"
-            :alt="cafe.cafeName"
+            :src="!!cafe.imageUrl ? cafe.imageUrl : defaultImage"
+            :alt="cafe.name"
             class="cafe-card-image"
         />
         <div class="cafe-card-content">
-          <h3 class="cafe-card-title">{{ cafe.cafeName }}</h3>
-          <p class="cafe-card-address">{{ cafe.cafeAddress }}</p>
-          <ul class="cafe-card-tags">
-            <li v-for="tag in cafe.tagList" :key="tag" class="cafe-card-tag">{{ tag }}</li>
-          </ul>
+          <h3 class="cafe-card-title">{{ cafe.name }}</h3>
+          <p class="cafe-card-address">{{ cafe.address }}</p>
         </div>
       </div>
     </div>
@@ -30,7 +27,7 @@
 </template>
 
 <script>
-
+import defaultImagePath from '@/assets/images/default-cafe-logo.png';
 
 export default {
   name: "CafeCardComponent",
@@ -39,15 +36,52 @@ export default {
       cafes: [], // API에서 가져온 카페 데이터
       loading: true, // 로딩 상태
       error: null, // 에러 메시지
-      defaultImage: "@/assets/images/default-cafe-logo.png", // 기본 이미지
+      defaultImage: defaultImagePath, // 기본 이미지
     };
   },
   methods: {
     async fetchCafes() {
+      try {
+        // JSON 더미 데이터를 직접 할당
+        const dummyData = [
+          {
+            id: 1,
+            name: "스타벅스",
+            imageUrl: "",
+            address: "123 Champs-Élysées, Paris, France",
+            description: "A cozy Parisian cafe offering the best espresso.",
+            tel: "+33 1 23 45 67 89"
+          },
+          {
+            id: 2,
+            name: "스타벅스",
+            imageUrl: "",
+            address: "456 Main Street, New York, USA",
+            description: "Artisan coffee with a touch of Brooklyn charm.",
+            tel: "+1 212-555-0199"
+          },
+          {
+            id: 3,
+            name: "스타벅스",
+            imageUrl: "",
+            address: "789 Sunset Blvd, Los Angeles, USA",
+            description: "Bright and sunny cafe with delicious pastries.",
+            tel: "+1 323-555-0111"
+          }
+        ];
+
+        // 데이터 설정
+        this.cafes = dummyData;
+        this.loading = false;
+
+      } catch (err) {
+        this.error = "카페 정보를 불러오지 못했습니다.";
+        this.loading = false;
+      }
     },
     navigateToCafe(cafeId) {
       this.$router.push(`/cafe/${cafeId}`);
-    },
+    }
   },
   mounted() {
     this.fetchCafes();
@@ -56,80 +90,68 @@ export default {
 </script>
 
 <style scoped>
-.cafe-list-title {
-  margin-top: 35px;
-  font-size: 25px;
+.cafe-list-container {
+  margin: 0 auto;
+  padding: 0 1em;
+  width: 100%;
+  max-width: 1200px;
 }
 
-.cafe-list-divider {
-  margin: 16px 0;
+.cafe-list-container .cafe-list-title {
+  margin-top: 2em;
+  font-size: 1.2em;
+}
+
+.cafe-list-container .cafe-list-divider {
+  margin: 1em 0;
   height: 0;
   border-bottom: #d0d0d0 solid 1px;
 }
 
-.cafe-list-container {
+.cafe-list-container .cafe-list-info {
   display: grid;
+  grid-gap: 1em;
   grid-template-columns: repeat(3, 1fr);
-}
-
-.cafe-list-info {
-  height: 150px;
-  display: flex;
+  height: 9.375em;
   align-items: center;
   margin: 0 5px;
+}
+
+.cafe-list-container .cafe-card {
+  display: flex;
   user-select: none;
   cursor: pointer;
   border-radius: 10px;
   transition: box-shadow 0.2s ease;
 }
 
-.cafe-list-info:hover {
-  box-shadow: 5px 5px 3px 3px rgba(38, 114, 0, 0.16);
-  transform: translateY(-3px);
-}
-
 .cafe-card-content {
-  width: 320px;
 }
 
 .cafe-card-title {
-  margin-top: 8px;
+  margin-top: 0.5em;
   font-family: 'GodoB', sans-serif;
-  font-size: 28px;
-  margin-bottom: 10px;
+  font-size: 1.2em;
+  margin-bottom: 0.5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 .cafe-card-address {
-  font-size: 20px;
+  font-size: 1.0em;
   color: #A3A3A3;
-}
-
-.cafe-card-tags {
-  margin-top: 11px;
-}
-
-.cafe-list-tag-list li {
-  display: inline-block;
-  padding: 7px 5px;
-  border: #D9D9D9 solid 1px;
-  border-radius: 30px;
-  box-shadow: 3px 3px 5px 0 #D9D9D9;
-  height: 20px;
-  line-height: 20px;
-  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 .cafe-card-image {
   border-radius: 50%;
-  height: 120px;
-  width: 120px;
-  margin-right: 15px;
-}
-
-.no_cafe_message {
-  margin: 51px auto 0 auto;
-  text-align: center;
-  font-size: 30px;
+  height: 7em;
+  width: 7em;
+  margin-right: 0.9em;
 }
 
 .cafe_register_button {
@@ -146,7 +168,7 @@ export default {
   display: inline-block;
 }
 
-.no_cafe_container {
+.loading {
   text-align: center;
 }
 
