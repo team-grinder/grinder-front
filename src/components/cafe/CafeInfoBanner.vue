@@ -3,23 +3,23 @@
     <div class="cafe_info_background">
       <img v-if="cafeInfo.imageUrl" class="cafe_info_background_img" :src="cafeInfo.imageUrl" alt="" />
       <div v-else class="cafe_info_background_img" style="background-color: #D9D9D9;"></div>
-      <div class="cafe_info_database">
-        <div class="cafe_info_data">
-          <img class="cafe_info_logo" :src="!!cafeInfo.logoUrl ? cafeInfo.logoUrl : defaultImage" alt="" />
-          <div class="cafe_info_data_wrap">
-            <h2 id="cafe-name">{{ cafeInfo.name }}</h2>
-            <div class="cafe_information">
-              <address id="cafe-address">{{ cafeInfo.address }}</address>
-            </div>
-            <div class="cafe_info_score">
-              평균 평점:
-              <template v-for="n in 5" :key="n">
-                <img v-if="n <= cafeInfo.averageGrade" src="@/assets/images/icon/star-fill.png" alt="" />
-                <img v-else src="@/assets/images/icon/star.png" alt="" />
-              </template>
-            </div>
+      <div class="cafe_info_data">
+        <img class="cafe_info_logo" :src="!!cafeInfo.logoUrl ? cafeInfo.logoUrl : defaultImage" alt="" />
+        <div class="cafe_info_data_wrap">
+          <h2 id="cafe-name">{{ cafeInfo.name }}</h2>
+          <div class="cafe_information">
+            <address id="cafe-address">{{ cafeInfo.address }}</address>
+          </div>
+          <div class="cafe_info_score">
+            평균 평점:
+            <template v-for="n in 5" :key="n">
+              <img v-if="n <= cafeInfo.averageGrade" src="@/assets/images/icon/star-fill.png" alt="" />
+              <img v-else src="@/assets/images/icon/star.png" alt="" />
+            </template>
           </div>
         </div>
+      </div>
+      <div class="cafe_info_database">
         <span id="cafe-phonenum">연락처: {{ cafeInfo.phoneNum }}</span>
       </div>
     </div>
@@ -64,12 +64,13 @@ export default {
 .cafe_info_background .cafe_info_database {
   padding: 0 1.5em;
   display: flex;
-  justify-content: space-between;
+  justify-content: end;
+  margin-bottom: 60px;
 }
 
 .cafe_info_background .cafe_info_data {
-  position: relative;
-  top: -97px;
+  position: absolute;
+  top: 95px;
   display: flex;
   float: left;
 }

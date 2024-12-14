@@ -1,9 +1,6 @@
 <template>
   <article class="cafe_info_tab">
-    <div id="show_ai_button" @click="showAISummary">
-      <span>🤖 AI 요약 보기</span>
-    </div>
-    <div id="show_menu_button" @click="showMenu">
+    <div id="show_menu_button" @click="changeView('MenuList')">
       <span>📋 메뉴 보기</span>
     </div>
     <div id="seller_apply_button" @click="applySeller">
@@ -43,11 +40,8 @@ export default {
     };
   },
   methods: {
-    showAISummary() {
-      alert('AI 요약 기능은 준비 중입니다.');
-    },
-    showMenu() {
-      alert('메뉴 보기 기능은 준비 중입니다.');
+    changeView(viewName) {
+      this.$emit("change-view", viewName);
     },
     applySeller() {
       alert('판매자 신청 기능은 준비 중입니다.');
@@ -66,11 +60,9 @@ export default {
 
 <style scoped>
 .cafe_info_tab {
-  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   position: relative;
-  top: -65px;
   display: flex;
   padding: 0 1em;
 }
@@ -97,11 +89,5 @@ export default {
   content: "";
   display: table;
   clear: both;
-}
-
-.cafe_info_line {
-  margin-top: 50px;
-  width: 1400px;
-  border-top: 1px solid #D9D9D9;
 }
 </style>
