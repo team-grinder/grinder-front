@@ -28,7 +28,7 @@ export default {
     return {
       cafeInfo: null, // 카페 정보를 저장
       loading: true,
-      currentView: "Calendar", // 기본값으로 MenuList를 표시
+      currentView: "MenuList", // 기본값으로 MenuList를 표시
       error: null,
     };
   },
@@ -69,7 +69,7 @@ export default {
 
 <style scoped>
 .cafe_info_line {
-  margin-top: 1.5em;
+  margin: 1.5em auto;
   width: 100%;
   max-width: 1200px;
   border-top: 1px solid #D9D9D9;

@@ -45,16 +45,12 @@
         </ul>
         <ul v-else>
           <li><strong>{{ username }}</strong>님! 안녕하세요.</li>
-          <li><button class="header_alarm">alarm</button></li>
-          <li v-if="!memberImageUrl">
-            <button class="header_profile" @click="$emit('go-to-my-page')">myPage</button>
-          </li>
-          <li v-else>
+          <li>
             <img
                 class="header_profile_member"
-                :src="memberImageUrl"
+                :src="!!memberImageUrl ? memberImageUrl : require('@/assets/images/basic-user-img.png')"
                 @click="$emit('go-to-my-page')"
-                alt=""
+                :alt="userId"
             />
           </li>
         </ul>
@@ -79,6 +75,10 @@ export default {
     },
     memberImageUrl: {
       type: String,
+      default: null,
+    },
+    userId: {
+      type: Number,
       default: null,
     },
     dropdownOptions: {

@@ -63,11 +63,10 @@ export default {
 
 <style scoped>
 .cafe_info_tab {
+  display: flex;
   max-width: 1200px;
   margin: 0 auto;
-  position: relative;
-  display: flex;
-  padding: 0 1em;
+  padding: 1em 1em 0;
 }
 
 .cafe_info_tab div {
@@ -77,6 +76,7 @@ export default {
   margin-right: 1.2em;
   cursor: pointer;
   border: 1px solid #D9D9D9;
+  background-color: white;
 }
 
 .cafe_info_tab .cafe_info_bookmark {

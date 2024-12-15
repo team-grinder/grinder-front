@@ -88,6 +88,7 @@ export default {
 .cafe_info_background .cafe_info_data .cafe_info_data_wrap {
   position: relative;
   top: 3.5em;
+  height: 8em;
 }
 
 .cafe_info_background .cafe_info_data h2 {
