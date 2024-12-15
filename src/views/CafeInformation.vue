@@ -3,7 +3,9 @@
     <CafeInfoBanner :cafeInfo="cafeInfo" />
     <CafeInfoTab :cafeInfo="cafeInfo" @change-view="handleChangeView"/>
     <div class="cafe_info_line"></div>
-    <component :is="currentView" :cafeInfo="cafeInfo" />
+    <component
+        :is="currentView"
+        :cafeInfo="cafeInfo" />
   </div>
 </template>
 
@@ -11,6 +13,7 @@
 import CafeInfoBanner from '@/components/cafe/CafeInfoBanner.vue';
 import CafeInfoTab from '@/components/cafe/CafeInfoTab.vue';
 import MenuList from "@/components/cafe/MenuList.vue";
+import Calendar from "@/components/cafe/Calendar.vue";
 import axios from 'axios';
 
 export default {
@@ -19,12 +22,13 @@ export default {
     CafeInfoBanner,
     CafeInfoTab,
     MenuList,
+    Calendar,
   },
   data() {
     return {
       cafeInfo: null, // 카페 정보를 저장
       loading: true,
-      currentView: "MenuList", // 기본값으로 MenuList를 표시
+      currentView: "Calendar", // 기본값으로 MenuList를 표시
       error: null,
     };
   },

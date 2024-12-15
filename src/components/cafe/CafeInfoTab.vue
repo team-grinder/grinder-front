@@ -3,6 +3,9 @@
     <div id="show_menu_button" @click="changeView('MenuList')">
       <span>📋 메뉴 보기</span>
     </div>
+    <div id="show_calendar_button" @click="changeView('Calendar')">
+      <span>📅 예약 보기</span>
+    </div>
     <div id="seller_apply_button" @click="applySeller">
       <span>👷 판매자 신청</span>
     </div>
