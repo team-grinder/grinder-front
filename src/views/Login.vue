@@ -2,7 +2,7 @@
   <div class="login-page">
     <article class="main_container-article">
       <img src="@/assets/images/logo_img.png" alt="grinder_logo" class="main-logo" />
-      <form @submit.prevent="handleLogin" class="form-container">
+      <div class="form-container">
         <div class="email-box">
           <img src="@/assets/images/icon/BsPersonCircle.png" alt="member_img" />
           <input
@@ -25,11 +25,12 @@
               required
           />
         </div>
-        <button type="submit" class="btn-login">로그인</button>
-      </form>
+        <button type="button" class="btn-login"
+                @click="handleLogin">로그인</button>
+      </div>
       <div class="a-wrap">
         <a href="/register">회원가입</a>
-        <a href="/page/change/password">비밀번호를 잊어버리셨나요?</a>
+        <a @click="changePassword">비밀번호를 잊어버리셨나요?</a>
       </div>
       <hr />
       <span>다른 계정으로 로그인</span>
@@ -39,8 +40,10 @@
 </template>
 
 <script>
-import '@/assets/css/login.css'
+import $axios from "@/plugins/axios";
 import SocialLoginButtons from "@/components/login/SocialLoginButtons.vue";
+import router from "@/router";
+import { useUserStore } from "@/stores/userStore";
 
 export default {
   name: "LoginComponent",
@@ -54,9 +57,42 @@ export default {
     };
   },
   methods: {
-    handleLogin() {
-      alert(`이메일: ${this.email}, 비밀번호: ${this.password}`);
+    async handleLogin() {
+      try {
+        // 로그인 요청
+        const response = await $axios.post('/login', {
+          email: this.email,
+          password: this.password,
+        });
+        console.log(response);
+
+        // 성공 시 Pinia 상태 업데이트
+        if (response.status === 200) {
+          alert('로그인 성공!');
+
+          router.push('/');
+        }
+      } catch (error) {
+        console.log(error);
+        if (error.response && error.response.status === 401) {
+          alert('이메일 또는 비밀번호가 잘못되었습니다.');
+        } else {
+          alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+      }
     },
+    changePassword() {
+      alert('비밀번호 찾기 기능은 준비 중입니다.');
+    },
+  },
+  async mounted() {
+    const userStore = useUserStore(); // Pinia 상태 가져오기
+    // 이미 로그인 상태라면 홈으로 리다이렉트
+    await userStore.checkSession();
+
+    if (userStore.isAuthenticated) {
+      this.$router.push("/");
+    }
   },
 };
 </script>

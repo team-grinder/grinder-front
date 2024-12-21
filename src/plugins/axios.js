@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-const instance = axios.create({
-    baseURL: process.env.VUE_APP_API_URL || 'http://localhost:8080',
+const $axios = axios.create({
+    baseURL: 'http://localhost:8080',
     timeout: 10000,
+    withCredentials: true, // 쿠키 포함
 });
 
-export default instance;
+export default $axios;

@@ -4,12 +4,7 @@ const path = require('path');
 module.exports = defineConfig({
   devServer: {
     port: 3000, // 개발 서버 포트 설정
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080', // 백엔드 서버 주소
-        changeOrigin: true,
-      },
-    },
+    historyApiFallback: true, // 모든 라우팅 요청을 index.html로 리디렉션
   },
   configureWebpack: {
     resolve: {
