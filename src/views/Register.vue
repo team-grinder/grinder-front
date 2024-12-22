@@ -21,8 +21,8 @@
                 @click="checkEmail">
               중복 확인
             </button>
-            <span v-if="errors.email">{{ errors.email }}</span>
           </div>
+          <span v-if="errors.email">{{ errors.email }}</span>
         </div>
         <div class="form-context">
           <label for="nickname">닉네임</label>
@@ -138,19 +138,24 @@ export default {
     },
 
     async checkEmail() {
-      // 서버로 데이터 전송
-      const response = await $axios.post("/users/check-email", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: this.email }),
-      });
+      try {
+        const response = await $axios.get("/check-email", {
+          params: {
+            email: this.email,
+          },
+        });
 
-      if (response.data.exists) {
-        this.errors.email = "이미 사용 중인 이메일입니다.";
-      } else {
-        alert("사용 가능한 이메일입니다.");
-        this.isCheckEmail = true;
+        console.log(response);
+        if (response.data) {
+          this.errors.email = "이미 사용 중인 이메일입니다.";
+        } else {
+          alert("사용 가능한 이메일입니다.");
+          this.errors.email = "";
+          this.isCheckEmail = true;
+        }
+      } catch (error) {
+        console.error(error);
+        alert("네트워크 오류가 발생했습니다. 서버 상태를 확인하세요.");
       }
     },
   },
