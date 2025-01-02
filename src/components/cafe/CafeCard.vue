@@ -2,7 +2,9 @@
   <div class="cafe-list-container">
     <h2 class="cafe-list-title">지금 뜨는 카페</h2>
     <div class="cafe-list-divider"></div>
-    <div v-if="loading" class="loading">불러오는 중...</div>
+    <div v-if="loading" class="loading">
+      <div class="spinner"></div>
+    </div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
     <div class="cafe-list-info">
       <div
@@ -28,6 +30,7 @@
 
 <script>
 import defaultImagePath from '@/assets/images/default-cafe-logo.png';
+import $axios from "@/plugins/axios";
 
 export default {
   name: "CafeCardComponent",
@@ -43,35 +46,11 @@ export default {
     async fetchCafes() {
       try {
         // JSON 더미 데이터를 직접 할당
-        const dummyData = [
-          {
-            id: 1,
-            name: "스타벅스",
-            imageUrl: "",
-            address: "123 Champs-Élysées, Paris, France",
-            description: "A cozy Parisian cafe offering the best espresso.",
-            tel: "+33 1 23 45 67 89"
-          },
-          {
-            id: 2,
-            name: "스타벅스",
-            imageUrl: "",
-            address: "456 Main Street, New York, USA",
-            description: "Artisan coffee with a touch of Brooklyn charm.",
-            tel: "+1 212-555-0199"
-          },
-          {
-            id: 3,
-            name: "스타벅스",
-            imageUrl: "",
-            address: "789 Sunset Blvd, Los Angeles, USA",
-            description: "Bright and sunny cafe with delicious pastries.",
-            tel: "+1 323-555-0111"
-          }
-        ];
+        const response = await $axios.get("/cafe/popular");
 
-        // 데이터 설정
-        this.cafes = dummyData;
+        if (response.data.length === 0) this.error = "카페 정보가 없습니다.";
+        else this.cafes = response.data;
+
         this.loading = false;
 
       } catch (err) {
@@ -125,9 +104,6 @@ export default {
   transition: box-shadow 0.2s ease;
 }
 
-.cafe-card-content {
-}
-
 .cafe-card-title {
   margin-top: 0.5em;
   font-family: 'GodoB', sans-serif;
@@ -168,8 +144,36 @@ export default {
   display: inline-block;
 }
 
-.loading {
+.error-message {
+  font-family: GodoM;
+  font-size: 1.2em;
+  color: #777777;
   text-align: center;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px; /* 높이 설정 */
+}
+
+.spinner {
+  width: 50px; /* 스피너 크기 */
+  height: 50px;
+  border: 5px solid #f3f3f3; /* 바깥 원의 색상 */
+  border-top: 5px solid #009b55; /* 스피너의 회전 부분 색상 */
+  border-radius: 50%; /* 원형으로 만들기 */
+  animation: spin 1s linear infinite; /* 애니메이션 적용 */
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg); /* 초기 위치 */
+  }
+  100% {
+    transform: rotate(360deg); /* 1회전 */
+  }
 }
 
 </style>
