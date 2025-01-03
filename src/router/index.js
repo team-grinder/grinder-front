@@ -5,6 +5,7 @@ import Home from '@/views/Home.vue';
 import Login from '@/views/Login.vue';
 import Register from '@/views/Register.vue';
 import CafeInformation from '@/views/CafeInformation.vue';
+import AdminLogin from '@/views/AdminLogin.vue';
 
 const routes = [
     {
@@ -34,6 +35,11 @@ const routes = [
         name: 'Register',
         component: Register,
     },
+    {
+        path: '/admin/login',
+        name: 'AdminLogin',
+        component: AdminLogin,
+    }
 ];
 
 const router = createRouter({

@@ -6,6 +6,13 @@ module.exports = defineConfig({
     port: 3000, // 개발 서버 포트 설정
     historyApiFallback: true, // 모든 라우팅 요청을 index.html로 리디렉션
   },
+  css: {
+    loaderOptions: {
+      sass: {
+        additionalData: `@use 'vuetify/styles' as *;`,
+      },
+    },
+  },
   configureWebpack: {
     resolve: {
       alias: {
