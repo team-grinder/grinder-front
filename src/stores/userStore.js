@@ -7,6 +7,7 @@ export const useUserStore = defineStore('user', {
         id: null, // 사용자 ID
         nickname: null, // 사용자 이름
         imageUrl: null, // 프로필 이미지
+        tier: null, // 사용자 등급
     }),
     actions: {
         // 사용자 정보 초기화
@@ -15,6 +16,7 @@ export const useUserStore = defineStore('user', {
             this.id = null;
             this.nickname = null;
             this.imageUrl = null;
+            this.tier = null;
         },
 
         // 세션 확인 및 사용자 정보 업데이트
@@ -55,6 +57,7 @@ export const useUserStore = defineStore('user', {
             this.id = userData.id || null;
             this.nickname = userData.nickname || null;
             this.imageUrl = userData.imageUrl || null;
+            this.tier = userData.tier || null;
         },
     },
 });

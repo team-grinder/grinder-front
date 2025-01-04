@@ -41,13 +41,11 @@ ol, ul {
 }
 * {
     text-decoration-line: none;
-    color: black;
 }
 body{
-    position: relative;
     width: 100%;
     margin: 0 auto;
-    font-family: 'GodoM', sans-serif;
+    font-family: 'NanumGothic', sans-serif;
 }
 img {
     vertical-align: top;
@@ -57,32 +55,6 @@ button {
     cursor: pointer;
     box-sizing: border-box;
     text-align: center;
-}
-textarea, input {
-    outline-color: #009B55;
-    border: 0.0625em solid #B4B4B4;
-    border-radius: 0.625em;
-    font-family: 'GodoM', sans-serif;
-    font-size: 1.25em;
-}
-textarea::placeholder,
-input::placeholder {
-    color: lightgrey;
-}
-textarea:focus,
-input:focus {
-    background-color: #fafffa;
-}
-
-.animation, button {
-    transition: transform 0.1s ease;
-}
-.animation:hover {
-    cursor: pointer;
-    transform: scale(1.06); /* 이미지 커지는 애니메이션 */
-}
-.animation:active {
-    transform: scale(1.02);
 }
 
 .none {
