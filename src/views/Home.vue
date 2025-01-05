@@ -17,12 +17,6 @@ export default {
   },
   data() {
     return {
-      dropdownOptions: [
-        { value: "all", label: "전체" },
-        { value: "cafe", label: "카페" },
-        { value: "feed", label: "피드" },
-        { value: "member", label: "회원" },
-      ],
     };
   },
 };

@@ -1,5 +1,8 @@
 <template>
   <article class="cafe_info_tab">
+    <div id="show_article_button" @click="changeView('ArticleList')">
+      <span>🦭 평가글 보기</span>
+    </div>
     <div id="show_menu_button" @click="changeView('MenuList')">
       <span>📋 메뉴 보기</span>
     </div>

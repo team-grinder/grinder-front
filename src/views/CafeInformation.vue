@@ -12,6 +12,7 @@
 <script>
 import CafeInfoBanner from '@/components/cafe/CafeInfoBanner.vue';
 import CafeInfoTab from '@/components/cafe/CafeInfoTab.vue';
+import ArticleList from "@/components/cafe/ArticleList.vue";
 import MenuList from "@/components/cafe/MenuList.vue";
 import Calendar from "@/components/cafe/Calendar.vue";
 import axios from 'axios';
@@ -21,6 +22,7 @@ export default {
   components: {
     CafeInfoBanner,
     CafeInfoTab,
+    ArticleList,
     MenuList,
     Calendar,
   },
@@ -28,7 +30,7 @@ export default {
     return {
       cafeInfo: null, // 카페 정보를 저장
       loading: true,
-      currentView: "MenuList", // 기본값으로 MenuList를 표시
+      currentView: "ArticleList", // 기본값으로 MenuList를 표시
       error: null,
     };
   },

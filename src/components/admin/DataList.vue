@@ -115,6 +115,7 @@ export default {
       },
       cafes: [
         {
+          id: 1,
           name: "카페1",
           description: "맛있는 커피와 디저트",
           address: "서울시 강남구",
@@ -122,6 +123,7 @@ export default {
           image: null,
         },
         {
+          id: 2,
           name: "카페2",
           description: "조용하고 아늑한 분위기",
           address: "서울시 강북구",
@@ -129,6 +131,7 @@ export default {
           image: null,
         },
         {
+          id: 3,
           name: "카페3",
           description: "트렌디한 인테리어와 음악",
           address: "서울시 강동구",
@@ -136,6 +139,7 @@ export default {
           image: null,
         },
         {
+          id: 4,
           name: "카페4",
           description: "도심 속 작은 정원",
           address: "서울시 강서구",
@@ -143,6 +147,7 @@ export default {
           image: null,
         },
         {
+          id: 5,
           name: "카페5",
           description: "24시간 열려있는 카페",
           address: "서울시 강남구",
@@ -150,6 +155,7 @@ export default {
           image: null,
         },
         {
+          id: 6,
           name: "카페6",
           description: "넓은 공간과 다양한 메뉴",
           address: "서울시 강북구",
