@@ -89,7 +89,7 @@ export default {
     };
   },
   methods: {
-    handleRegister() {
+     async handleRegister() {
       this.errors = {};
 
       // 간단한 클라이언트 측 유효성 검사
@@ -113,21 +113,32 @@ export default {
 
       if (Object.keys(this.errors).length === 0) {
         // 서버로 데이터 전송
-        const response = $axios.post("/register", {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: this.email,
-            nickname: this.nickname,
-            password: this.password,
-          }),
-        });
+        try {
+          const response = await $axios.post(
+              "/register",
+              {
+                email: this.email,
+                nickname: this.nickname,
+                password: this.password,
+                confirmPassword: this.confirmPassword
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                }
+              }
+          );
 
-        if (response.status === 201) {
-          alert("회원가입이 완료되었습니다.");
-          this.$router.push({ name: "Login" });
-        } else {
+          console.log(response);
+
+          if (response.data.code === 201) {
+            alert("회원가입이 완료되었습니다.");
+            this.$router.push({ name: "Login" });
+          } else {
+            alert("회원가입에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error(error);
           alert("회원가입에 실패했습니다.");
         }
       }
@@ -146,7 +157,7 @@ export default {
         });
 
         console.log(response);
-        if (response.data) {
+        if (response.data.data) {
           this.errors.email = "이미 사용 중인 이메일입니다.";
         } else {
           alert("사용 가능한 이메일입니다.");
