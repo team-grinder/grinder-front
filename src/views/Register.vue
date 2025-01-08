@@ -47,6 +47,7 @@
               class="input-group"
               required
           />
+          <span v-if="errors.password">{{ errors.password }}</span>
         </div>
 
         <div class="form-context">
@@ -89,57 +90,68 @@ export default {
     };
   },
   methods: {
-     async handleRegister() {
+    async handleRegister() {
       this.errors = {};
 
       // 간단한 클라이언트 측 유효성 검사
-      if (!this.email) {
-        this.errors.email = "이메일을 입력해주세요.";
-      } else if (!this.validateEmail(this.email)) {
+      if (!this.email || !this.validateEmail(this.email)) {
         this.errors.email = "올바른 이메일 형식이 아닙니다.";
-      }
-
-      if (this.password !== this.confirmPassword) {
-        this.errors.confirmPassword = "비밀번호가 일치하지 않습니다.";
-      }
-
-      if (!this.nickname) {
-        this.errors.nickname = "닉네임을 입력해주세요.";
+        return;
       }
 
       if (!this.isCheckEmail) {
         this.errors.email = "이메일 중복 확인을 해주세요.";
+        return;
       }
 
-      if (Object.keys(this.errors).length === 0) {
-        // 서버로 데이터 전송
-        try {
-          const response = await $axios.post(
-              "/register",
-              {
-                email: this.email,
-                nickname: this.nickname,
-                password: this.password,
-                confirmPassword: this.confirmPassword
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                }
-              }
-          );
+      if (!this.nickname) {
+        this.errors.nickname = "닉네임을 입력해주세요.";
+        return;
+      }
 
-          console.log(response);
+      try {
+        const response = await $axios.post(
+            "/register",
+            {
+              email: this.email,
+              nickname: this.nickname,
+              password: this.password,
+              confirmPassword: this.confirmPassword
+            }
+        );
 
-          if (response.data.code === 201) {
-            alert("회원가입이 완료되었습니다.");
-            this.$router.push({ name: "Login" });
-          } else {
-            alert("회원가입에 실패했습니다.");
+        if (response.data.code === "200") {
+          alert("회원가입이 완료되었습니다.");
+          this.$router.push({ name: "Login" });
+        }
+      } catch (error) {
+        // 백엔드에서 전달된 에러 처리
+        if (error.response && error.response.data) {
+          const errorData = error.response.data;
+
+          if (errorData.data && errorData.data.errorCode) {
+            switch(errorData.data.errorCode) {
+              case 'AUTH_006': // 이메일 중복
+                this.errors.email = errorData.data.errorMessage;
+                break;
+              case 'AUTH_007': // 비밀번호 규칙 위반
+                this.errors.password = errorData.data.errorMessage;
+                break;
+              case 'AUTH_008': // 비밀번호 불일치
+                this.errors.confirmPassword = errorData.data.errorMessage;
+                break;
+              case 'AUTH_011': // 이메일 형식 오류
+                this.errors.email = errorData.data.errorMessage;
+                break;
+              case 'AUTH_012': // 닉네임 오류
+                this.errors.nickname = errorData.data.errorMessage;
+                break;
+              default:
+                alert(errorData.data.errorMessage || "회원가입에 실패했습니다.");
+            }
           }
-        } catch (error) {
-          console.error(error);
-          alert("회원가입에 실패했습니다.");
+        } else {
+          alert("네트워크 오류가 발생했습니다.");
         }
       }
     },
@@ -165,8 +177,12 @@ export default {
           this.isCheckEmail = true;
         }
       } catch (error) {
-        console.error(error);
-        alert("네트워크 오류가 발생했습니다. 서버 상태를 확인하세요.");
+        if (error.response && error.response.data && error.response.data.data) {
+          this.errors.email = error.response.data.data.errorMessage;
+        } else {
+          alert("네트워크 오류가 발생했습니다. 서버 상태를 확인하세요.");
+        }
+        this.isCheckEmail = false;
       }
     },
   },
