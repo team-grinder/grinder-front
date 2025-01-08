@@ -27,8 +27,9 @@ export const useUserStore = defineStore('user', {
                 const response = await $axios.get('/session/validate', {});
                 console.log('세션 확인 결과:', response.data);
 
-                if (response.status === 200) {
-                    this.setUser(response.data); // 받은 데이터로 상태 업데이트
+                if (response.status === 200 && response.data.code === "200") {
+                    const userData = response.data.data;
+                    this.setUser(userData); // 받은 데이터로 상태 업데이트
                 } else {
                     this.resetUser(); // 세션이 유효하지 않으면 초기화
                 }
@@ -53,6 +54,7 @@ export const useUserStore = defineStore('user', {
 
         // 로그인 후 사용자 정보 업데이트
         setUser(userData) {
+            if(!userData) return;
             this.isAuthenticated = true;
             this.id = userData.id || null;
             this.nickname = userData.nickname || null;
