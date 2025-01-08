@@ -91,7 +91,7 @@ export default {
     await userStore.checkSession();
 
     if (userStore.isAuthenticated) {
-      this.$router.push("/");
+      await router.push("/");
     }
   },
 };

@@ -16,6 +16,7 @@
 <script>
 import Header from "@/components/main/Header.vue";
 import { useUserStore } from "@/stores/userStore";
+import router from "@/router";
 
 export default {
   name: "DefaultLayout",
@@ -64,7 +65,7 @@ export default {
     },
     async logout() {
       await this.userStore.logout();
-      this.$router.push({ name: "Home" });
+      router.push({ name: "Home" });
       window.location.reload();
     },
   },

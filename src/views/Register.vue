@@ -76,6 +76,7 @@
 
 <script>
 import $axios from "@/plugins/axios";
+import router from "@/router";
 
 export default {
   name: "RegisterComponent",
@@ -122,7 +123,7 @@ export default {
 
         if (response.data.code === "200") {
           alert("회원가입이 완료되었습니다.");
-          this.$router.push({ name: "Login" });
+          await router.push({ name: "Login" });
         }
       } catch (error) {
         // 백엔드에서 전달된 에러 처리

@@ -31,6 +31,7 @@
 <script>
 import defaultImagePath from '@/assets/images/default-cafe-logo.png';
 import $axios from "@/plugins/axios";
+import router from "@/router";
 
 export default {
   name: "CafeCardComponent",
@@ -59,7 +60,7 @@ export default {
       }
     },
     navigateToCafe(cafeId) {
-      this.$router.push(`/cafe/${cafeId}`);
+      router.push(`/cafe/${cafeId}`);
     }
   },
   mounted() {

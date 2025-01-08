@@ -54,7 +54,6 @@ export const useUserStore = defineStore('user', {
 
         // 로그인 후 사용자 정보 업데이트
         setUser(userData) {
-            if(!userData) return;
             this.isAuthenticated = true;
             this.id = userData.id || null;
             this.nickname = userData.nickname || null;
