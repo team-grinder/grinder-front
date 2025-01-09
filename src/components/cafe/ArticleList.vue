@@ -8,22 +8,20 @@
       <v-col>
         <v-card elevation="2">
           <v-card-title>
-            <v-avatar
-                :src="article.memberImage"
-                alt="회원 이미지"
-                cover>
+            <v-avatar>
+              <v-img
+                  :src="!!article.memberImage ? article.memberImage : defaultImage"
+                  alt="회원 이미지"
+                  cover
+              />
             </v-avatar>
 
-            <div class="ml-3">
-              <strong>{{ article.memberName }}</strong>
-              <span class="text-caption text-gray-500">
+            <strong class="pa-5">{{ article.memberName }}</strong>
+            <span class="text-caption text-gray-500">
                 {{ article.period }}
-              </span>
-            </div>
+            </span>
 
-            <v-divider></v-divider>
-
-            <div>평점:
+            <div class="text-caption text-gray-500 ">평점:
               <template v-for="n in 5" :key="n">
                 <v-icon
                     v-if="n <= article.rating"
@@ -45,26 +43,71 @@
             </div>
           </v-card-title>
 
+          <v-divider></v-divider>
+
           <v-card-text>
             <div class="mb-2">
               {{ article.content }}
             </div>
 
-            <v-btn
-                color="green-darken-1"
-                variant="outlined"
-                class="mr-2"
-                @click="likeArticle(aIndex)"
-            >
-              좋아요 ({{ article.likes }})
-            </v-btn>
-            <v-btn
-                color="green-darken-1"
-                variant="outlined"
-                @click="toggleComments(aIndex)"
-            >
-              댓글 ({{ article.comments.length }})
-            </v-btn>
+            <!-- 첨부 이미지 영역 -->
+            <div class="d-flex flex-column mt-3">
+              <v-row class="flex-row">
+                <v-col
+                    class="d-flex justify-center align-center"
+                    v-for="(image, index) in visibleImages(article)"
+                    :key="index"
+                >
+                  <v-img
+                      :src="image"
+                      aspect-ratio="1.5"
+                      contain
+                      max-height="200"
+                  />
+                </v-col>
+              </v-row>
+
+              <div v-if="article.attachments.length > 4" class="d-flex justify-center mt-2">
+                <v-btn
+                    icon
+                    @click="prevImage(article)"
+                    :disabled="article.currentImageIndex === 0"
+                >
+                  <v-icon>mdi-chevron-left</v-icon>
+                </v-btn>
+                <v-btn
+                    icon
+                    @click="nextImage(article)"
+                    :disabled="article.currentImageIndex + 4 >= article.attachments.length"
+                >
+                  <v-icon>mdi-chevron-right</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- 좋아요와 댓글 버튼 -->
+            <div class="d-flex justify-end align-center mt-2">
+              <div>
+                <v-btn
+                    class="ma-2"
+                    color="green-darken-1"
+                    icon="mdi-thumb-up"
+                    variant="text"
+                    @click="likeArticle(aIndex)"
+                ></v-btn>
+                <span>{{ article.likes }}</span>
+              </div>
+              <div>
+                <v-btn
+                    class="ma-2"
+                    color="green-darken-1"
+                    icon="mdi-comment-outline"
+                    variant="text"
+                    @click="toggleComments(aIndex)"
+                ></v-btn>
+                <span>{{ article.comments.length }}</span>
+              </div>
+            </div>
 
             <div v-if="article.showComments" class="mt-4">
               <div
@@ -76,7 +119,7 @@
                 <div class="d-flex align-center mb-2">
                   <v-avatar size="32">
                     <v-img
-                        :src="comment.memberImage"
+                        :src="!!comment.memberImage ? comment.memberImage : defaultImage"
                         alt="댓글 작성자 프로필"
                         cover
                     />
@@ -111,7 +154,7 @@
                     <div class="d-flex align-center mb-1">
                       <v-avatar size="24">
                         <v-img
-                            :src="reply.memberImage"
+                            :src="!!reply.memberImage ? reply.memberImage : defaultImage"
                             alt="대댓글 작성자 프로필"
                             cover
                         />
@@ -123,23 +166,9 @@
                     <div class="ml-3">{{ reply.content }}</div>
                   </div>
 
-                  <div class="d-flex align-center mt-2">
-                    <v-text-field
-                        v-model="comment.newReply.memberName"
-                        label="이름"
-                        variant="outlined"
-                        density="compact"
-                        class="mr-2"
-                        style="max-width: 120px;"
-                    />
-                    <v-text-field
-                        v-model="comment.newReply.memberImage"
-                        label="이미지"
-                        variant="outlined"
-                        density="compact"
-                        class="mr-2"
-                        style="max-width: 120px;"
-                    />
+                  <div
+                      class="d-flex align-center mt-2"
+                      v-if="isAuthenticated">
                     <v-text-field
                         v-model="comment.newReply.content"
                         label="대댓글 작성"
@@ -157,23 +186,9 @@
                 </div>
               </div>
 
-              <div class="d-flex align-center mt-4">
-                <v-text-field
-                    v-model="article.newComment.memberName"
-                    label="이름"
-                    variant="outlined"
-                    density="compact"
-                    class="mr-2"
-                    style="max-width: 120px;"
-                />
-                <v-text-field
-                    v-model="article.newComment.memberImage"
-                    label="이미지"
-                    variant="outlined"
-                    density="compact"
-                    class="mr-2"
-                    style="max-width: 120px;"
-                />
+              <div
+                  class="d-flex align-center mt-4"
+                  v-if="isAuthenticated">
                 <v-text-field
                     v-model="article.newComment.content"
                     label="댓글 작성"
@@ -197,10 +212,27 @@
 </template>
 
 <script>
+import defaultImage from "@/assets/images/basic-user-img.png";
+
 export default {
   name: 'ArticleList',
+  props: {
+    isAuthenticated: {
+      type: Boolean,
+      required: true,
+    },
+    nickname: {
+      type: String,
+      required: false,
+    },
+    imageUrl: {
+      type: String,
+      required: false,
+    },
+  },
   data() {
     return {
+      defaultImage: defaultImage,
       articles: [
         {
           id: 1,
@@ -216,10 +248,19 @@ export default {
             memberImage: "",
             content: "",
           },
+          attachments: [
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+          ],
+          currentImageIndex: 0,
           comments: [
             {
               memberName: "김영희",
-              memberImage: "/path/to/member2.jpg",
+              memberImage: "",
               content: "저도 동감합니다!",
               showReplies: false,
               newReply: {
@@ -230,9 +271,8 @@ export default {
               replies: [
                 {
                   memberName: "이철수",
-                  memberImage: "/path/to/member3.jpg",
+                  memberImage: "",
                   content: "저도 좋아요!",
-                  // 대댓글은 또 다른 replies... (원하면 재귀적으로 가능)
                   showReplies: false,
                   newReply: { memberName: "", memberImage: "", content: "" },
                   replies: []
@@ -245,17 +285,6 @@ export default {
     };
   },
   methods: {
-    // 좋아요 증가
-    likeArticle(articleIndex) {
-      this.articles[articleIndex].likes++;
-    },
-
-    // 댓글 토글
-    toggleComments(articleIndex) {
-      this.articles[articleIndex].showComments =
-          !this.articles[articleIndex].showComments;
-    },
-
     // 새 댓글 등록
     addComment(articleIndex) {
       const article = this.articles[articleIndex];
@@ -300,6 +329,30 @@ export default {
         // 입력 폼 초기화
         comment.newReply = { memberName: "", memberImage: "", content: "" };
       }
+    },
+
+    likeArticle(articleIndex) {
+      this.articles[articleIndex].likes++;
+    },
+    toggleComments(articleIndex) {
+      this.articles[articleIndex].showComments =
+          !this.articles[articleIndex].showComments;
+    },
+    prevImage(article) {
+      if (article.currentImageIndex > 0) {
+        article.currentImageIndex--;
+      }
+    },
+    nextImage(article) {
+      if (article.currentImageIndex + 4 < article.attachments.length) {
+        article.currentImageIndex++;
+      }
+    },
+    visibleImages(article) {
+      return article.attachments.slice(
+          article.currentImageIndex,
+          article.currentImageIndex + 4
+      );
     },
   },
 };

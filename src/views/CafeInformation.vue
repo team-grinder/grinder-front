@@ -5,7 +5,10 @@
     <div class="cafe_info_line"></div>
     <component
         :is="currentView"
-        :cafeInfo="cafeInfo" />
+        :is-authenticated="isAuthenticated"
+        :nickname="nickname"
+        :image-url="imageUrl"
+        :cafeInfo="cafeInfo"/>
   </div>
 </template>
 
@@ -15,11 +18,14 @@ import CafeInfoTab from '@/components/cafe/CafeInfoTab.vue';
 import ArticleList from "@/components/cafe/ArticleList.vue";
 import MenuList from "@/components/cafe/MenuList.vue";
 import Calendar from "@/components/cafe/Calendar.vue";
+import { useUserStore } from "@/stores/userStore";
 import axios from 'axios';
+import Header from "@/components/main/Header.vue";
 
 export default {
   name: 'CafeInformation',
   components: {
+    Header,
     CafeInfoBanner,
     CafeInfoTab,
     ArticleList,
@@ -38,6 +44,20 @@ export default {
     id: {
       type: String,
       required: true,
+    },
+  },
+  computed: {
+    userStore() {
+      return useUserStore();
+    },
+    isAuthenticated() {
+      return this.userStore.isAuthenticated;
+    },
+    nickname() {
+      return this.userStore.nickname;
+    },
+    imageUrl() {
+      return this.userStore.imageUrl;
     },
   },
   methods: {
