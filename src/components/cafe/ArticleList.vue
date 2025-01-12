@@ -6,7 +6,7 @@
         class="mb-4"
     >
       <v-col>
-        <v-card elevation="2">
+        <v-card class="pa-3" elevation="2">
           <v-card-title>
             <v-avatar>
               <v-img
@@ -60,36 +60,18 @@
                 >
                   <v-img
                       :src="image"
-                      aspect-ratio="1.5"
                       contain
-                      max-height="200"
+                      max-height="150"
                   />
                 </v-col>
               </v-row>
-
-              <div v-if="article.attachments.length > 4" class="d-flex justify-center mt-2">
-                <v-btn
-                    icon
-                    @click="prevImage(article)"
-                    :disabled="article.currentImageIndex === 0"
-                >
-                  <v-icon>mdi-chevron-left</v-icon>
-                </v-btn>
-                <v-btn
-                    icon
-                    @click="nextImage(article)"
-                    :disabled="article.currentImageIndex + 4 >= article.attachments.length"
-                >
-                  <v-icon>mdi-chevron-right</v-icon>
-                </v-btn>
-              </div>
             </div>
 
             <!-- 좋아요와 댓글 버튼 -->
             <div class="d-flex justify-end align-center mt-2">
               <div>
                 <v-btn
-                    class="ma-2"
+                    class=""
                     color="green-darken-1"
                     icon="mdi-thumb-up"
                     variant="text"
@@ -99,7 +81,7 @@
               </div>
               <div>
                 <v-btn
-                    class="ma-2"
+                    class=""
                     color="green-darken-1"
                     icon="mdi-comment-outline"
                     variant="text"
@@ -109,7 +91,7 @@
               </div>
             </div>
 
-            <div v-if="article.showComments" class="mt-4">
+            <div v-if="article.showComments" class="mt-4 pa-2">
               <div
                   v-for="(comment, cIndex) in article.comments"
                   :key="cIndex"
@@ -132,14 +114,19 @@
 
                 <div>{{ comment.content }}</div>
 
-                <v-btn
-                    color="green-darken-1"
-                    variant="text"
-                    class="mt-2"
-                    @click="toggleReplies(aIndex, cIndex)"
-                >
-                  대댓글 ({{ comment.replies.length }})
-                </v-btn>
+                <!-- 좋아요와 댓글 버튼 -->
+                <div class="d-flex justify-end align-center mt-2">
+                  <div class="pa-2">
+                    <v-btn
+                        class=""
+                        color="green-darken-1"
+                        icon="mdi-comment-outline"
+                        variant="text"
+                        @click="toggleReplies(aIndex, cIndex)"
+                    ></v-btn>
+                    <span>{{ comment.replies.length }}</span>
+                  </div>
+                </div>
 
                 <div
                     v-if="comment.showReplies"
