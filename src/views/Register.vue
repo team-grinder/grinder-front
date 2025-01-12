@@ -121,7 +121,7 @@ export default {
             }
         );
 
-        if (response.data.code === "200") {
+        if (response.data.code === "201") {
           alert("회원가입이 완료되었습니다.");
           await router.push({ name: "Login" });
         }
@@ -253,7 +253,7 @@ body {
           align-items: center;
 
           #email-check-btn {
-            width: 6em;
+            width: 7em;
             height: 3em;
             font-size: 0.8em;
             background-color: #009b55;

@@ -49,7 +49,9 @@ export default {
         // JSON 더미 데이터를 직접 할당
         const response = await $axios.get("/cafe/popular");
 
-        if (response.data.length === 0) this.error = "카페 정보가 없습니다.";
+        const result = response.data.data;
+
+        if (result.length === 0) this.error = "카페 정보가 없습니다.";
         else this.cafes = response.data;
 
         this.loading = false;

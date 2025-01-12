@@ -25,7 +25,6 @@ export const useUserStore = defineStore('user', {
 
             try {
                 const response = await $axios.get('/session/validate', {});
-                console.log('세션 확인 결과:', response.data);
 
                 if (response.status === 200 && response.data.code === "200") {
                     const userData = response.data.data;

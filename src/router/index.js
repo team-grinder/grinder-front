@@ -5,6 +5,7 @@ import Home from '@/views/Home.vue';
 import Login from '@/views/Login.vue';
 import Register from '@/views/Register.vue';
 import CafeInformation from '@/views/CafeInformation.vue';
+import UserInformation from '@/views/UserInformation.vue';
 import Admin from '@/views/Admin.vue';
 import AdminLogin from '@/views/AdminLogin.vue';
 
@@ -24,6 +25,12 @@ const routes = [
                 component: CafeInformation,
                 props: true,
             },
+            {
+                path: 'user/:id',
+                name: 'UserInformation',
+                component: UserInformation,
+                props: true,
+            }
         ]
     },
     {
@@ -45,7 +52,7 @@ const routes = [
         path: '/admin',
         name: 'Admin',
         component: Admin,
-    }
+    },
 ];
 
 const router = createRouter({
