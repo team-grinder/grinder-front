@@ -1,14 +1,22 @@
 <template>
   <div>
     <CafeInfoBanner :cafeInfo="cafeInfo" />
-    <CafeInfoTab :cafeInfo="cafeInfo" @change-view="handleChangeView"/>
-    <div class="cafe_info_line"></div>
+    <CafeInfoTab
+        :cafeInfo="cafeInfo"
+        :userId="userId"
+        @change-view="handleChangeView"/>
+
+    <v-divider class="cafe_info_line"></v-divider>
+
     <component
         :is="currentView"
         :is-authenticated="isAuthenticated"
+        :articles="articles"
         :nickname="nickname"
         :image-url="imageUrl"
-        :cafeInfo="cafeInfo"/>
+        :cafeInfo="cafeInfo"
+        :loading="loading"
+    />
   </div>
 </template>
 
@@ -19,13 +27,11 @@ import ArticleList from "@/components/cafe/ArticleList.vue";
 import MenuList from "@/components/cafe/MenuList.vue";
 import Calendar from "@/components/cafe/Calendar.vue";
 import { useUserStore } from "@/stores/userStore";
-import axios from 'axios';
-import Header from "@/components/main/Header.vue";
+import $axios from '@/plugins/axios';
 
 export default {
   name: 'CafeInformation',
   components: {
-    Header,
     CafeInfoBanner,
     CafeInfoTab,
     ArticleList,
@@ -38,6 +44,7 @@ export default {
       loading: true,
       currentView: "ArticleList", // 기본값으로 MenuList를 표시
       error: null,
+      articles: [],
     };
   },
   props: {
@@ -49,6 +56,9 @@ export default {
   computed: {
     userStore() {
       return useUserStore();
+    },
+    userId() {
+      return this.userStore.id;
     },
     isAuthenticated() {
       return this.userStore.isAuthenticated;
@@ -65,9 +75,7 @@ export default {
       // 버튼 클릭에 따라 표시할 컴포넌트를 변경
       this.currentView = viewName;
     },
-  },
-  async created() {
-    try {
+    async getCafeInfo() {
       this.cafeInfo = {
         "id": 1,
         "name": "Bluebird Coffee",
@@ -77,15 +85,82 @@ export default {
         "logoUrl": "",
         "imageUrl": ""
       };
-      const response = await axios.get(`cafe/${this.id}`);
+      try {
+        const response = await $axios.get(`cafe/${this.id}`);
 
-      response.data;
-    } catch (err) {
-      this.error = '카페 정보를 불러올 수 없습니다.';
-    } finally {
-      this.loading = false;
+        console.log(response.data);
+      } catch (err) {
+        this.error = '카페 정보를 불러올 수 없습니다.';
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async getArticles() {
+      this.articles = [
+        {
+          id: 1,
+          nickname: "홍길동",
+          memberImage: "",
+          content: "카페가 너무 좋아요!",
+          rating: 4.5,
+          period: "2025-01-01",
+          likes: 2,
+          showComments: false, // 댓글 영역 토글
+          newComment: {
+            nickname: "",    // 새 댓글 작성 시 입력
+            memberImage: "",
+            content: "",
+          },
+          attachments: [
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+            "https://via.placeholder.com/150",
+          ],
+          currentImageIndex: 0,
+          comments: [
+            {
+              nickname: "김영희",
+              memberImage: "",
+              content: "저도 동감합니다!",
+              showReplies: false,
+              newReply: {
+                nickname: "",
+                memberImage: "",
+                content: "",
+              },
+              replies: [
+                {
+                  nickname: "이철수",
+                  memberImage: "",
+                  content: "저도 좋아요!",
+                  showReplies: false,
+                  newReply: { nickname: "", memberImage: "", content: "" },
+                  replies: []
+                }
+              ]
+            },
+          ]
+        },
+      ];
+
+      try {
+        const response = await $axios.get(`cafe/${this.id}/articles`);
+        console.log(response.data);
+      } catch (err) {
+        this.error = '게시글을 불러올 수 없습니다.';
+      } finally {
+        this.loading = false;
+      }
     }
   },
+  async created() {
+    await this.getCafeInfo();
+    await this.getArticles();
+  }
 };
 </script>
 
@@ -94,6 +169,5 @@ export default {
   margin: 1.5em auto;
   width: 100%;
   max-width: 1200px;
-  border-top: 1px solid #D9D9D9;
 }
 </style>

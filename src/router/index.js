@@ -26,7 +26,7 @@ const routes = [
                 props: true,
             },
             {
-                path: 'user/:id',
+                path: 'setting',
                 name: 'UserInformation',
                 component: UserInformation,
                 props: true,

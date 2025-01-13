@@ -8,18 +8,24 @@
       <v-col>
         <v-card class="pa-3" elevation="2">
           <v-card-title>
-            <v-avatar>
-              <v-img
-                  :src="!!article.memberImage ? article.memberImage : defaultImage"
-                  alt="회원 이미지"
-                  cover
-              />
-            </v-avatar>
 
-            <strong class="pa-5">{{ article.memberName }}</strong>
-            <span class="text-caption text-gray-500">
+            <div class="d-flex flex-row align-center">
+              <v-avatar>
+                <v-img
+                    :src="!!article.memberImage ? article.memberImage : defaultImage"
+                    alt="회원 이미지"
+                    cover
+                />
+              </v-avatar>
+              <strong class="pl-5 pr-5">{{ article.nickname }}</strong>
+              <span class="text-caption text-gray-500">
                 {{ article.period }}
-            </span>
+              </span>
+              <v-spacer></v-spacer>
+              <v-icon v-if="article.nickname === nickname">
+                mdi-dots-vertical
+              </v-icon>
+            </div>
 
             <div class="text-caption text-gray-500 ">평점:
               <template v-for="n in 5" :key="n">
@@ -107,7 +113,7 @@
                     />
                   </v-avatar>
                   <span class="ml-2 font-weight-medium">
-                    {{ comment.memberName }}
+                    {{ comment.nickname }}
                   </span>
                   <v-spacer></v-spacer>
                 </div>
@@ -147,7 +153,7 @@
                         />
                       </v-avatar>
                       <span class="ml-1">
-                        {{ reply.memberName }}
+                        {{ reply.nickname }}
                       </span>
                     </div>
                     <div class="ml-3">{{ reply.content }}</div>
@@ -216,79 +222,34 @@ export default {
       type: String,
       required: false,
     },
+    articles: {
+      type: Array,
+      required: true,
+    }
   },
   data() {
     return {
       defaultImage: defaultImage,
-      articles: [
-        {
-          id: 1,
-          memberName: "홍길동",
-          memberImage: "",
-          content: "카페가 너무 좋아요!",
-          rating: 4.5,
-          period: "2025-01-01",
-          likes: 2,
-          showComments: false, // 댓글 영역 토글
-          newComment: {
-            memberName: "",    // 새 댓글 작성 시 입력
-            memberImage: "",
-            content: "",
-          },
-          attachments: [
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-          ],
-          currentImageIndex: 0,
-          comments: [
-            {
-              memberName: "김영희",
-              memberImage: "",
-              content: "저도 동감합니다!",
-              showReplies: false,
-              newReply: {
-                memberName: "",
-                memberImage: "",
-                content: "",
-              },
-              replies: [
-                {
-                  memberName: "이철수",
-                  memberImage: "",
-                  content: "저도 좋아요!",
-                  showReplies: false,
-                  newReply: { memberName: "", memberImage: "", content: "" },
-                  replies: []
-                }
-              ]
-            },
-          ]
-        },
-      ]
     };
   },
   methods: {
     // 새 댓글 등록
     addComment(articleIndex) {
       const article = this.articles[articleIndex];
-      const { memberName, memberImage, content } = article.newComment;
-      if (memberName.trim() && content.trim()) {
+      const { nickname, memberImage, content } = article.newComment;
+      if (nickname.trim() && content.trim()) {
         // 새 댓글 객체 생성
         const newC = {
-          memberName: memberName.trim(),
+          nickname: nickname.trim(),
           memberImage: memberImage.trim(),
           content: content.trim(),
           showReplies: false,
-          newReply: { memberName: "", memberImage: "", content: "" },
+          newReply: { nickname: "", memberImage: "", content: "" },
           replies: [],
         };
         article.comments.push(newC);
         // 입력 폼 초기화
-        article.newComment = { memberName: "", memberImage: "", content: "" };
+        article.newComment = { nickname: "", memberImage: "", content: "" };
       }
     },
 
@@ -305,35 +266,25 @@ export default {
       if (memberName.trim() && content.trim()) {
         // 새 대댓글 객체 생성
         const newR = {
-          memberName: memberName.trim(),
+          nickname: memberName.trim(),
           memberImage: memberImage.trim(),
           content: content.trim(),
           showReplies: false,
-          newReply: { memberName: "", memberImage: "", content: "" },
+          newReply: { nickname: "", memberImage: "", content: "" },
           replies: [],
         };
         comment.replies.push(newR);
         // 입력 폼 초기화
-        comment.newReply = { memberName: "", memberImage: "", content: "" };
+        comment.newReply = { nickname: "", memberImage: "", content: "" };
       }
     },
 
     likeArticle(articleIndex) {
-      this.articles[articleIndex].likes++;
+      this.$props.articles[articleIndex].likes++;
     },
     toggleComments(articleIndex) {
-      this.articles[articleIndex].showComments =
+      this.$props.articles[articleIndex].showComments =
           !this.articles[articleIndex].showComments;
-    },
-    prevImage(article) {
-      if (article.currentImageIndex > 0) {
-        article.currentImageIndex--;
-      }
-    },
-    nextImage(article) {
-      if (article.currentImageIndex + 4 < article.attachments.length) {
-        article.currentImageIndex++;
-      }
     },
     visibleImages(article) {
       return article.attachments.slice(

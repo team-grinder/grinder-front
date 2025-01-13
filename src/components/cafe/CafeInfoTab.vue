@@ -32,6 +32,8 @@
 </template>
 
 <script>
+import $axios from "@/plugins/axios";
+
 export default {
   name: 'CafeInfoTab',
   props: {
@@ -39,6 +41,10 @@ export default {
       type: Object,
       required: true,
     },
+    userId: {
+      type: Number,
+      required: true,
+    }
   },
   data() {
     return {
@@ -60,7 +66,21 @@ export default {
       this.isBookmarked = false;
       alert('북마크가 삭제되었습니다!');
     },
+    async checkBookmark() {
+      // 북마크 여부 확인
+      await $axios.get(`/bookmark/${this.userId}/${this.cafeInfo.id}`)
+          .then(() => {
+            this.isBookmarked = true;
+          })
+          .catch(() => {
+            this.isBookmarked = false;
+          });
+    },
   },
+  mounted() {
+    // 북마크 여부 확인
+    // this.isBookmarked = this.$store.getters.isBookmarked(this.cafeInfo.id);
+  }
 };
 </script>
 
