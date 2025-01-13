@@ -126,6 +126,7 @@ export default {
           await router.push({ name: "Login" });
         }
       } catch (error) {
+        console.log('Error response:', error.response);
         // 백엔드에서 전달된 에러 처리
         if (error.response && error.response.data) {
           const errorData = error.response.data;
@@ -144,7 +145,10 @@ export default {
               case 'AUTH_011': // 이메일 형식 오류
                 this.errors.email = errorData.data.errorMessage;
                 break;
-              case 'AUTH_012': // 닉네임 오류
+              case 'AUTH_012': // 닉네임 형식 오류
+                this.errors.nickname = errorData.data.errorMessage;
+                break;
+              case 'AUTH_015': // 닉네임 중복
                 this.errors.nickname = errorData.data.errorMessage;
                 break;
               default:
@@ -162,6 +166,16 @@ export default {
     },
 
     async checkEmail() {
+      if (!this.email) {
+        this.errors.email = "이메일을 입력해주세요.";
+        return;
+      }
+
+      if (!this.validateEmail(this.email)) {
+        this.errors.email = "올바른 이메일 형식이 아닙니다.";
+        return;
+      }
+
       try {
         const response = await $axios.get("/check-email", {
           params: {
@@ -172,6 +186,7 @@ export default {
         console.log(response);
         if (response.data.data) {
           this.errors.email = "이미 사용 중인 이메일입니다.";
+          this.isCheckEmail = false;
         } else {
           alert("사용 가능한 이메일입니다.");
           this.errors.email = "";
@@ -186,6 +201,7 @@ export default {
         this.isCheckEmail = false;
       }
     },
+
   },
 };
 </script>
