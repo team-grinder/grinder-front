@@ -101,8 +101,7 @@
               <div
                   v-for="(comment, cIndex) in article.comments"
                   :key="cIndex"
-                  class="pa-3 mb-2"
-                  style="border: 1px solid #ccc; border-radius: 4px;"
+                  class="pa-3 mb-2 border-thin rounded-lg"
               >
                 <div class="d-flex align-center mb-2">
                   <v-avatar size="32">
@@ -166,8 +165,8 @@
                         v-model="comment.newReply.content"
                         label="대댓글 작성"
                         variant="outlined"
-                        density="compact"
-                        class="mr-2 flex-grow-1"
+                        hide-details="auto"
+                        class="mr-2"
                     />
                     <v-btn
                         color="green-darken-1"
@@ -186,8 +185,8 @@
                     v-model="article.newComment.content"
                     label="댓글 작성"
                     variant="outlined"
-                    density="compact"
-                    class="mr-2 flex-grow-1"
+                    hide-details="auto"
+                    class="mr-2"
                 />
                 <v-btn
                     color="green-darken-1"
@@ -236,20 +235,20 @@ export default {
     // 새 댓글 등록
     addComment(articleIndex) {
       const article = this.articles[articleIndex];
-      const { nickname, memberImage, content } = article.newComment;
-      if (nickname.trim() && content.trim()) {
+      const { content } = article.newComment;
+      if (content.trim()) {
         // 새 댓글 객체 생성
         const newC = {
-          nickname: nickname.trim(),
-          memberImage: memberImage.trim(),
+          nickname: this.nickname,
+          memberImage: this.imageUrl,
           content: content.trim(),
           showReplies: false,
-          newReply: { nickname: "", memberImage: "", content: "" },
+          newReply: { content: "" },
           replies: [],
         };
         article.comments.push(newC);
         // 입력 폼 초기화
-        article.newComment = { nickname: "", memberImage: "", content: "" };
+        article.newComment = { content: "" };
       }
     },
 
@@ -262,20 +261,20 @@ export default {
     // 대댓글 등록
     addReply(articleIndex, commentIndex) {
       const comment = this.articles[articleIndex].comments[commentIndex];
-      const { memberName, memberImage, content } = comment.newReply;
-      if (memberName.trim() && content.trim()) {
+      const { content } = comment.newReply;
+      if (content.trim()) {
         // 새 대댓글 객체 생성
         const newR = {
-          nickname: memberName.trim(),
-          memberImage: memberImage.trim(),
+          nickname: this.nickname,
+          memberImage: this.imageUrl,
           content: content.trim(),
           showReplies: false,
-          newReply: { nickname: "", memberImage: "", content: "" },
+          newReply: { content: "" },
           replies: [],
         };
         comment.replies.push(newR);
         // 입력 폼 초기화
-        comment.newReply = { nickname: "", memberImage: "", content: "" };
+        comment.newReply = { content: "" };
       }
     },
 

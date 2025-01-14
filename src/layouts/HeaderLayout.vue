@@ -61,11 +61,11 @@ export default {
       alert(`검색 유형: ${searchType}, 키워드: ${searchKeyword}`);
     },
     goToMyPage() {
-      alert("마이페이지 이동");
+      router.push({ name: "UserInformation" });
     },
     async logout() {
       await this.userStore.logout();
-      router.push({ name: "Home" });
+      await router.push({ name: "Home" });
       window.location.reload();
     },
   },

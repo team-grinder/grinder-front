@@ -26,7 +26,7 @@ const routes = [
                 props: true,
             },
             {
-                path: 'setting',
+                path: 'myPage',
                 name: 'UserInformation',
                 component: UserInformation,
                 props: true,

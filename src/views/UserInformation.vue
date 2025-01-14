@@ -11,6 +11,7 @@
 
     <component
         :is="currentView"
+        :is-authenticated="isAuthenticated"
         :nickname="nickname"
         :image-url="imageUrl"
         :loading="loading"
@@ -23,6 +24,7 @@
 import UserInfoBanner from "@/components/user/UserInfoBanner.vue";
 import UserInfoTab from "@/components/user/UserInfoTab.vue";
 import ArticleList from "@/components/cafe/ArticleList.vue";
+import BookList from "@/components/user/BookList.vue";
 import { useUserStore } from "@/stores/userStore";
 import $axios from "@/plugins/axios";
 import router from "@/router";
@@ -33,6 +35,7 @@ export default {
     UserInfoTab,
     UserInfoBanner,
     ArticleList,
+    BookList,
   },
   data() {
     return {
@@ -99,18 +102,14 @@ export default {
               memberImage: "",
               content: "저도 동감합니다!",
               showReplies: false,
-              newReply: {
-                nickname: "",
-                memberImage: "",
-                content: "",
-              },
+              newReply: { content: "" },
               replies: [
                 {
                   nickname: "이철수",
                   memberImage: "",
                   content: "저도 좋아요!",
                   showReplies: false,
-                  newReply: { nickname: "", memberImage: "", content: "" },
+                  newReply: { content: "" },
                   replies: []
                 }
               ]
