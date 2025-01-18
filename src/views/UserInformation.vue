@@ -5,7 +5,9 @@
         :imageUrl="imageUrl"
         :tier="tier"
     />
-    <UserInfoTab @change-view="handleChangeView"/>
+    <UserInfoTab
+        :is-cafe-manager="isCafeManager"
+        @change-view="handleChangeView"/>
 
     <v-divider class="cafe_info_line"></v-divider>
 
@@ -25,6 +27,7 @@ import UserInfoBanner from "@/components/user/UserInfoBanner.vue";
 import UserInfoTab from "@/components/user/UserInfoTab.vue";
 import ArticleList from "@/components/cafe/ArticleList.vue";
 import BookList from "@/components/user/BookList.vue";
+import CafeManagement from "@/components/user/CafeManagement.vue";
 import { useUserStore } from "@/stores/userStore";
 import $axios from "@/plugins/axios";
 import router from "@/router";
@@ -36,6 +39,7 @@ export default {
     UserInfoBanner,
     ArticleList,
     BookList,
+    CafeManagement,
   },
   data() {
     return {
@@ -44,6 +48,7 @@ export default {
       currentView: "ArticleList",
       error: null,
       articles: [],
+      isCafeManager: true,
     };
   },
   computed: {
@@ -69,6 +74,15 @@ export default {
   methods: {
     handleChangeView(view) {
       this.currentView = view;
+    },
+
+    async getIsCafeManager() {
+      try {
+        const response = await $axios.get(`/cafe/${this.userInfo.id}/manager`);
+        console.log(response.data);
+      } catch (err) {
+        this.error = '카페 관리자 여부를 불러올 수 없습니다.';
+      }
     },
 
     async getArticles() {
@@ -129,11 +143,12 @@ export default {
     },
   },
   async created() {
-    await this.getArticles();
-
     if (!this.isAuthenticated) {
       await router.push({ name: "Login" });
     }
+
+    await this.getArticles();
+
   },
 }
 </script>

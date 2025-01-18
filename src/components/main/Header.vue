@@ -1,5 +1,6 @@
 <template>
-  <v-app-bar class="header-container">
+  <v-app-bar
+      class="header-container">
     <template v-slot:prepend>
         <router-link to="/" class="header_grinder_logo">
           <img :src="require('@/assets/images/grinder-logo.png')"

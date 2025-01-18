@@ -26,7 +26,9 @@
           />
         </div>
         <button type="button" class="btn-login"
-                @click="handleLogin">로그인</button>
+                @click="handleLogin"
+                @keyup.enter="handleLogin">
+          로그인</button>
       </div>
       <div class="a-wrap">
         <a href="/register">회원가입</a>
@@ -70,7 +72,7 @@ export default {
         if (response.status === 200) {
           alert('로그인 성공!');
 
-          router.push('/');
+          await router.push('/');
         }
       } catch (error) {
         console.log(error);

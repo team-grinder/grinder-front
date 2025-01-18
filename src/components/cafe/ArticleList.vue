@@ -1,5 +1,7 @@
 <template>
-  <v-container class="pa-4">
+  <v-container
+      class="pa-4 mx-auto"
+      width="1200">
     <v-row
         v-for="(article, aIndex) in articles"
         :key="article.id"
