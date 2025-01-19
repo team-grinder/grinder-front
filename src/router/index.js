@@ -8,6 +8,7 @@ import CafeInformation from '@/views/CafeInformation.vue';
 import UserInformation from '@/views/UserInformation.vue';
 import Admin from '@/views/Admin.vue';
 import AdminLogin from '@/views/AdminLogin.vue';
+import BookPaymentPage from '@/views/BookPayment.vue';
 
 const routes = [
     {
@@ -52,6 +53,25 @@ const routes = [
         path: '/admin',
         name: 'Admin',
         component: Admin,
+    },
+    {
+        path: '/payment',
+        component: BookPaymentPage,
+        props: (route) => ({
+            memberId: route.query.memberId,
+            reservationDate: route.query.reservationDate,
+            selectedTimes: route.query.selectedTimes.split(',').map(Number),
+            selectedPersons: Number(route.query.selectedPersons),
+            totalPrice: Number(route.query.totalPrice),
+        }),
+    },
+    {
+        path: '/payment/success',
+        component: { template: '<div>결제가 성공적으로 완료되었습니다.</div>' },
+    },
+    {
+        path: '/payment/fail',
+        component: { template: '<div>결제가 실패하였습니다. 다시 시도해주세요.</div>' },
     },
 ];
 

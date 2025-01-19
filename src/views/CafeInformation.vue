@@ -11,6 +11,7 @@
     <component
         :is="currentView"
         :is-authenticated="isAuthenticated"
+        :member-id="userId"
         :articles="articles"
         :nickname="nickname"
         :image-url="imageUrl"
@@ -25,7 +26,7 @@ import CafeInfoBanner from '@/components/cafe/CafeInfoBanner.vue';
 import CafeInfoTab from '@/components/cafe/CafeInfoTab.vue';
 import ArticleList from "@/components/cafe/ArticleList.vue";
 import MenuList from "@/components/cafe/MenuList.vue";
-import Calendar from "@/components/cafe/Calendar.vue";
+import BookPage from "@/components/cafe/BookPage.vue";
 import { useUserStore } from "@/stores/userStore";
 import $axios from '@/plugins/axios';
 
@@ -36,7 +37,7 @@ export default {
     CafeInfoTab,
     ArticleList,
     MenuList,
-    Calendar,
+    BookPage,
   },
   data() {
     return {
