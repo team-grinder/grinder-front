@@ -99,19 +99,24 @@ export default {
       if (!this.date) return;
 
       try {
-        const response = await axios.get(`/cafe/bookInfo/${this.$route.params.id}`);
+        const response = await axios.get(`/tabling/cafe/${this.$route.params.id}/tabling-info`, {params: {date: this.formatDate(this.date)}});
         const cafeInfoResponse = await axios.get(`/cafe/${this.$route.params.id}`);
 
-        this.availableTimes = response.data; // { startTime: 10, endTime: 20, maxTime: 3, invalidList: [10, 11, 12] }
         this.cafeBookInfo = cafeInfoResponse.data;
+        if (!response.data || Object.keys(response.data).length === 0) {
+          this.fetchDummyData();
+        } else {
+          this.availableTimes = response.data;
+          this.cafeBookInfo = cafeInfoResponse.data;
 
-        this.availableTimes.invalidList = response.data.invalidList || [];
-        this.availableTimes.maxTime = response.data.maxTime || 3;
+          this.availableTimes.invalidList = response.data.invalidList || [];
+          this.availableTimes.maxTime = response.data.maxTime || 3;
 
-        this.allTimes = Array.from(
-            { length: this.availableTimes.endTime - this.availableTimes.startTime + 1 },
-            (_, i) => i + this.availableTimes.startTime
-        );
+          this.allTimes = Array.from(
+              { length: this.availableTimes.endTime - this.availableTimes.startTime + 1 },
+              (_, i) => i + this.availableTimes.startTime
+          );
+        }
       } catch (error) {
         console.error("시간 정보를 불러오는 데 실패했습니다.", error);
       }
@@ -171,16 +176,31 @@ export default {
       return this.availableTimes.invalidList.includes(time);
     },
     goToPayment() {
-      this.$router.push({
-        path: '/payment',
-        query: {
+      try {
+        const response = axios.post('/tabling', {
+          cafeId: this.$route.params.id,
           memberId: this.memberId,
-          reservationDate: this.date,
-          selectedTimes: this.selectedTimes.join(','),
-          selectedPersons: this.selectedPersons,
-          totalPrice: this.totalPrice,
-        },
-      });
+          date: this.formatDate(this.date),
+          reserveTime: this.selectedTimes[0],
+          numberOfGuests: this.selectedPersons
+        });
+        if (response.data) {
+          this.$router.push({
+            path: '/payment',
+            query: {
+              tablingId: response.data.id,
+              memberId: this.memberId,
+              reservationDate: this.date,
+              selectedTimes: this.selectedTimes.join(','),
+              selectedPersons: this.selectedPersons,
+              totalPrice: this.totalPrice,
+            },
+          });
+        }
+      } catch (error) {
+        console.error("예약 생성에 실패했습니다.", error);
+        alert(error.response?.data?.message || "예약 생성에 실패했습니다.");
+      }
     },
     fetchDummyData() {
       // 더미 데이터
