@@ -4,6 +4,7 @@
     <CafeInfoTab
         :cafeInfo="cafeInfo"
         :userId="userId"
+        :isAuthenticated="isAuthenticated"
         @change-view="handleChangeView"/>
 
     <v-divider class="cafe_info_line"></v-divider>

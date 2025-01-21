@@ -1,31 +1,65 @@
 <template>
-  <div class="cafe-list-container">
-    <h2 class="cafe-list-title">지금 뜨는 카페</h2>
-    <div class="cafe-list-divider"></div>
-    <div v-if="loading" class="loading">
-      <div class="spinner"></div>
-    </div>
-    <div v-else-if="error" class="error-message">{{ error }}</div>
-    <div class="cafe-list-info">
-      <div
-          v-for="cafe in cafes"
-          :key="cafe.id"
-          class="cafe-card"
-          @click="navigateToCafe(cafe.id)"
-      >
-        <img
-            :src="!!cafe.imageUrl ? cafe.imageUrl : defaultImage"
-            :alt="cafe.name"
-            class="cafe-card-image"
-        />
-        <div class="cafe-card-content">
-          <h3 class="cafe-card-title">{{ cafe.name }}</h3>
-          <p class="cafe-card-address">{{ cafe.address }}</p>
-        </div>
-      </div>
-    </div>
-    <div class="cafe-list-divider"></div>
-  </div>
+  <v-container class="cafe-list-container">
+    <v-row justify="center">
+      <v-col cols="12" md="8" class="text-center">
+        <v-card flat>
+          <v-card-title class="text-h5 font-weight-bold">
+            지금 뜨는 카페
+          </v-card-title>
+          <v-divider></v-divider>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row justify="center">
+      <v-col>
+        <!-- 로딩 스피너 -->
+        <v-row v-if="loading" justify="center">
+          <v-col cols="12" class="text-center">
+            <v-progress-circular indeterminate color="primary" size="50"></v-progress-circular>
+          </v-col>
+        </v-row>
+
+        <!-- 에러 메시지 -->
+        <v-alert v-else-if="error" type="error" prominent dismissible>
+          {{ error }}
+        </v-alert>
+
+        <!-- 카페 리스트 -->
+        <v-row v-else>
+          <v-col
+              v-for="cafe in cafes"
+              :key="cafe.id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="3"
+          >
+            <v-card class="cafe-card" @click="navigateToCafe(cafe.id)">
+              <v-img
+                  :src="cafe.imageUrl ? cafe.imageUrl : defaultImage"
+                  :alt="cafe.name"
+                  class="cafe-card-image"
+                  height="120"
+                  cover
+              ></v-img>
+              <v-card-title class="text-h6 font-weight-bold">{{ cafe.name }}</v-card-title>
+              <v-card-subtitle class="cafe-card-address ml-2 mb-3 pa-0">
+                <v-icon color="grey darken-1">mdi-map-marker</v-icon>
+                {{ cafe.address }}
+              </v-card-subtitle>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+
+    <v-row justify="center">
+      <v-col cols="12" md="8">
+        <v-divider></v-divider>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -52,7 +86,7 @@ export default {
         const result = response.data.data;
 
         if (result.length === 0) this.error = "카페 정보가 없습니다.";
-        else this.cafes = response.data;
+        else this.cafes = result;
 
         this.loading = false;
 
@@ -73,110 +107,24 @@ export default {
 
 <style scoped>
 .cafe-list-container {
-  margin: 0 auto;
-  padding: 0 1em;
-  width: 100%;
-  max-width: 1200px;
+  padding: 20px;
 }
 
-.cafe-list-container .cafe-list-title {
-  margin-top: 2em;
-  font-size: 1.2em;
-}
-
-.cafe-list-container .cafe-list-divider {
-  margin: 1em 0;
-  height: 0;
-  border-bottom: #d0d0d0 solid 1px;
-}
-
-.cafe-list-container .cafe-list-info {
-  display: grid;
-  grid-gap: 1em;
-  grid-template-columns: repeat(3, 1fr);
-  height: 9.375em;
-  align-items: center;
-  margin: 0 5px;
-}
-
-.cafe-list-container .cafe-card {
-  display: flex;
-  user-select: none;
+.cafe-card {
   cursor: pointer;
-  border-radius: 10px;
-  transition: box-shadow 0.2s ease;
+  transition: transform 0.2s ease-in-out;
 }
 
-.cafe-card-title {
-  margin-top: 0.5em;
-  font-family: 'GodoB', sans-serif;
-  font-size: 1.2em;
-  margin-bottom: 0.5em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px;
-}
-
-.cafe-card-address {
-  font-size: 1.0em;
-  color: #A3A3A3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
+.cafe-card:hover {
+  transform: scale(1.05);
 }
 
 .cafe-card-image {
-  border-radius: 50%;
-  height: 7em;
-  width: 7em;
-  margin-right: 0.9em;
+  border-radius: 12px;
 }
 
-.cafe_register_button {
-  font-family: GodoM;
-  font-size: 30px;
-  color: #000;
-  background-color: white;
-  border: 1px solid #D9D9D9;
-  border-radius: 30px;
-  padding: 6px 18px;
-  box-shadow: 3px 2px 4px 0 rgba(0,0,0,25%);
-  margin: 78px auto;
-  text-align: center;
-  display: inline-block;
+.cafe-card-address {
+  font-size: 14px;
+  color: grey;
 }
-
-.error-message {
-  font-family: GodoM;
-  font-size: 1.2em;
-  color: #777777;
-  text-align: center;
-}
-
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100px; /* 높이 설정 */
-}
-
-.spinner {
-  width: 50px; /* 스피너 크기 */
-  height: 50px;
-  border: 5px solid #f3f3f3; /* 바깥 원의 색상 */
-  border-top: 5px solid #009b55; /* 스피너의 회전 부분 색상 */
-  border-radius: 50%; /* 원형으로 만들기 */
-  animation: spin 1s linear infinite; /* 애니메이션 적용 */
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg); /* 초기 위치 */
-  }
-  100% {
-    transform: rotate(360deg); /* 1회전 */
-  }
-}
-
 </style>

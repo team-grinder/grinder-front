@@ -23,11 +23,11 @@
               type="password"
               placeholder="비밀번호"
               required
+              @keydown.enter="handleLogin"
           />
         </div>
         <button type="button" class="btn-login"
-                @click="handleLogin"
-                @keyup.enter="handleLogin">
+                @click="handleLogin">
           로그인</button>
       </div>
       <div class="a-wrap">
