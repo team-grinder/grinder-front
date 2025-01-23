@@ -63,7 +63,7 @@
               <v-row class="flex-row">
                 <v-col
                     class="d-flex justify-center align-center"
-                    v-for="(image, index) in visibleImages(article)"
+                    v-for="(image, index) in article.attachments"
                     :key="index"
                 >
                   <v-img
@@ -286,12 +286,6 @@ export default {
     toggleComments(articleIndex) {
       this.$props.articles[articleIndex].showComments =
           !this.articles[articleIndex].showComments;
-    },
-    visibleImages(article) {
-      return article.attachments.slice(
-          article.currentImageIndex,
-          article.currentImageIndex + 4
-      );
     },
   },
 };

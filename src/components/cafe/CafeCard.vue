@@ -1,15 +1,14 @@
 <template>
   <v-container class="cafe-list-container">
-    <v-row justify="center">
-      <v-col cols="12" md="8" class="text-center">
-        <v-card flat>
-          <v-card-title class="text-h5 font-weight-bold">
-            지금 뜨는 카페
-          </v-card-title>
-          <v-divider></v-divider>
-        </v-card>
-      </v-col>
+    <v-row>
+      <v-card flat>
+        <v-card-title class="text-h5 font-weight-bold">
+          지금 뜨는 카페
+        </v-card-title>
+      </v-card>
     </v-row>
+
+    <v-divider class="my-5"></v-divider>
 
     <v-row justify="center">
       <v-col>
@@ -33,7 +32,6 @@
               cols="12"
               sm="6"
               md="4"
-              lg="3"
           >
             <v-card class="cafe-card" @click="navigateToCafe(cafe.id)">
               <v-img
@@ -54,11 +52,7 @@
       </v-col>
     </v-row>
 
-    <v-row justify="center">
-      <v-col cols="12" md="8">
-        <v-divider></v-divider>
-      </v-col>
-    </v-row>
+    <v-divider class="my-5"></v-divider>
   </v-container>
 </template>
 

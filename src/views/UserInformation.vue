@@ -109,7 +109,6 @@ export default {
             "https://via.placeholder.com/150",
             "https://via.placeholder.com/150",
           ],
-          currentImageIndex: 0,
           comments: [
             {
               nickname: "김영희",

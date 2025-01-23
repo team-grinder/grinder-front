@@ -108,12 +108,6 @@ export default {
           rating: 4.5,
           period: "2025-01-01",
           likes: 2,
-          showComments: false, // 댓글 영역 토글
-          newComment: {
-            nickname: "",    // 새 댓글 작성 시 입력
-            memberImage: "",
-            content: "",
-          },
           attachments: [
             "https://via.placeholder.com/150",
             "https://via.placeholder.com/150",
@@ -122,7 +116,12 @@ export default {
             "https://via.placeholder.com/150",
             "https://via.placeholder.com/150",
           ],
-          currentImageIndex: 0,
+          showComments: false, // 댓글 영역 토글
+          newComment: {
+            nickname: "",    // 새 댓글 작성 시 입력
+            memberImage: "",
+            content: "",
+          },
           comments: [
             {
               nickname: "김영희",
