@@ -91,6 +91,8 @@ export default {
         const response = await $axios.get(`cafe/${this.id}`);
 
         console.log(response.data);
+
+        this.cafeInfo = response.data.data;
       } catch (err) {
         this.error = '카페 정보를 불러올 수 없습니다.';
       } finally {

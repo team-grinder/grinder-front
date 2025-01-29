@@ -53,24 +53,15 @@
               <!-- 별점 표시 -->
               <div class="d-flex align-center mb-2">
                 <span class="mr-2">평균 평점:</span>
-                <template v-for="n in 5" :key="n">
-                  <v-icon
-                      v-if="n <= cafeInfo.averageGrade"
-                      color="yellow"
-                      size="24"
-                      density="compact"
-                  >
-                    mdi-star
-                  </v-icon>
-                  <v-icon
-                      v-else
-                      color="yellow"
-                      size="24"
-                      density="compact"
-                  >
-                    mdi-star-outline
-                  </v-icon>
-                </template>
+                <v-rating
+                    hover
+                    :length="5"
+                    :size="32"
+                    :model-value="cafeInfo.averageGrade"
+                    disabled
+                    readonly
+                    active-color="yellow-darken-2"
+                />
               </div>
 
               <!-- 연락처 -->
@@ -91,8 +82,8 @@ class CafeInfo {
   constructor(name, address, imageUrl, logoUrl, averageGrade, phoneNum) {
     this.name = name;
     this.address = address;
-    this.imageUrl = imageUrl;
-    this.logoUrl = logoUrl;
+    this.imageUrl = imageUrl ? imageUrl : "";
+    this.logoUrl = logoUrl ? logoUrl : defaultImagePath;
     this.averageGrade = averageGrade;
     this.phoneNum = phoneNum;
   }

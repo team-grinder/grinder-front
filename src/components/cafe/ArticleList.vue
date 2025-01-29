@@ -20,7 +20,7 @@
                 />
               </v-avatar>
               <strong class="pl-5 pr-5">{{ article.nickname }}</strong>
-              <span class="text-caption text-gray-500">
+              <span class="text-subtitle-1 text-gray-500">
                 {{ article.period }}
               </span>
               <v-spacer></v-spacer>
@@ -29,25 +29,17 @@
               </v-icon>
             </div>
 
-            <div class="text-caption text-gray-500 ">평점:
-              <template v-for="n in 5" :key="n">
-                <v-icon
-                    v-if="n <= article.rating"
-                    color="yellow"
-                    size="24"
-                    density="compact"
-                >
-                  mdi-star
-                </v-icon>
-                <v-icon
-                    v-else
-                    color="yellow"
-                    size="24"
-                    density="compact"
-                >
-                  mdi-star-outline
-                </v-icon>
-              </template>
+            <div class="d-flex align-center text-gray-500 mt-2">
+              <span class="text-subtitle-1">평점 : </span>
+              <v-rating
+                  class="ratings"
+                  :length="5"
+                  size="28"
+                  :model-value="article.rating"
+                  disabled
+                  readonly
+                  active-color="yellow-darken-2"
+              />
             </div>
           </v-card-title>
 
@@ -290,3 +282,6 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+</style>
