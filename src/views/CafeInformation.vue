@@ -30,6 +30,7 @@ import MenuList from "@/components/cafe/MenuList.vue";
 import BookPage from "@/components/cafe/BookPage.vue";
 import { useUserStore } from "@/stores/userStore";
 import $axios from '@/plugins/axios';
+import router from "@/router";
 
 export default {
   name: 'CafeInformation',
@@ -47,6 +48,8 @@ export default {
       currentView: "ArticleList", // 기본값으로 MenuList를 표시
       error: null,
       articles: [],
+      page: 1,
+      size: 5,
     };
   },
   props: {
@@ -120,8 +123,6 @@ export default {
           ],
           showComments: false, // 댓글 영역 토글
           newComment: {
-            nickname: "",    // 새 댓글 작성 시 입력
-            memberImage: "",
             content: "",
           },
           comments: [
@@ -131,8 +132,6 @@ export default {
               content: "저도 동감합니다!",
               showReplies: false,
               newReply: {
-                nickname: "",
-                memberImage: "",
                 content: "",
               },
               replies: [
@@ -141,7 +140,7 @@ export default {
                   memberImage: "",
                   content: "저도 좋아요!",
                   showReplies: false,
-                  newReply: { nickname: "", memberImage: "", content: "" },
+                  newReply: { content: "" },
                   replies: []
                 }
               ]
@@ -151,7 +150,12 @@ export default {
       ];
 
       try {
-        const response = await $axios.get(`cafe/${this.id}/articles`);
+        const response = await $axios.get(`feed/cafe/${this.id}`, {
+          params: {
+            page: this.page,
+            size: this.size,
+          }
+        });
         console.log(response.data);
       } catch (err) {
         this.error = '게시글을 불러올 수 없습니다.';
@@ -161,6 +165,10 @@ export default {
     }
   },
   async created() {
+    if (!this.isAuthenticated) {
+      await router.push({ name: "Login" });
+    }
+
     await this.getCafeInfo();
     await this.getArticles();
   }
