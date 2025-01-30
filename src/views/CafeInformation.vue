@@ -43,9 +43,9 @@ export default {
   },
   data() {
     return {
-      cafeInfo: null, // 카페 정보를 저장
+      cafeInfo: {},
       loading: true,
-      currentView: "ArticleList", // 기본값으로 MenuList를 표시
+      currentView: "ArticleList",
       error: null,
       articles: [],
       page: 1,
@@ -81,15 +81,6 @@ export default {
       this.currentView = viewName;
     },
     async getCafeInfo() {
-      this.cafeInfo = {
-        "id": 1,
-        "name": "Bluebird Coffee",
-        "address": "123 Coffee Street",
-        "phoneNum": "010-1234-5678",
-        "averageGrade": 4.5,
-        "logoUrl": "",
-        "imageUrl": ""
-      };
       try {
         const response = await $axios.get(`cafe/${this.id}`);
 
@@ -171,7 +162,7 @@ export default {
 
     await this.getCafeInfo();
     await this.getArticles();
-  }
+  },
 };
 </script>
 
