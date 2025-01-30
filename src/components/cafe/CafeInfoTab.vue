@@ -6,7 +6,7 @@
     <div id="show_menu_button" @click="changeView('MenuList')">
       <span>메뉴 보기</span>
     </div>
-    <div v-if="!isAuthenticated" id="show_calendar_button" @click="changeView('BookPage')">
+    <div v-if="isAuthenticated" id="show_calendar_button" @click="changeView('BookPage')">
       <span>예약 보기</span>
     </div>
     <div id="seller_apply_button" @click="applySeller">

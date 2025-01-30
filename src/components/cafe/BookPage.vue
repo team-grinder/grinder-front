@@ -9,7 +9,7 @@
           width="1200"
           :min="minDate"
           :max="maxDate"
-          @update:modelValue="fetchDummyData"
+          @update:modelValue="fetchAvailableTimes"
       ></v-date-picker>
     </v-row>
     <v-row v-if="!!availableTimes"
@@ -64,7 +64,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from '@/plugins/axios';
 
 export default {
   props: {
@@ -99,24 +99,34 @@ export default {
       if (!this.date) return;
 
       try {
-        const response = await axios.get(`/tabling/cafe/${this.$route.params.id}/tabling-info`, {params: {date: this.formatDate(this.date)}});
+        const tablingResponse = await axios.get(`/tabling/cafe/${this.$route.params.id}/tabling-info`, {params: {date: this.formatDate(this.date)}});
         const cafeInfoResponse = await axios.get(`/cafe/${this.$route.params.id}`);
+        const businessHoursResponse = await axios.get(`/admin/cafe/${this.$route.params.id}/business-hours`);
 
-        this.cafeBookInfo = cafeInfoResponse.data;
-        if (!response.data || Object.keys(response.data).length === 0) {
-          this.fetchDummyData();
-        } else {
-          this.availableTimes = response.data;
-          this.cafeBookInfo = cafeInfoResponse.data;
+        this.availableTimes = {
+          startTime: businessHoursResponse.data.startTime,
+          endTime: businessHoursResponse.data.endTime,
+          maxTime: businessHoursResponse.data.maxTime,
+          invalidList: businessHoursResponse.data.invalidList || []
+        };
 
-          this.availableTimes.invalidList = response.data.invalidList || [];
-          this.availableTimes.maxTime = response.data.maxTime || 3;
+        this.cafeBookInfo = {
+          perPerson: cafeInfoResponse.data.perPerson || 5000,
+          minPayment: cafeInfoResponse.data.minPayment || 20000,
+          maxPerson: cafeInfoResponse.data.maxPerson || 7
+        };
 
-          this.allTimes = Array.from(
-              { length: this.availableTimes.endTime - this.availableTimes.startTime + 1 },
-              (_, i) => i + this.availableTimes.startTime
-          );
-        }
+        this.allTimes = Array.from(
+            { length: this.availableTimes.endTime - this.availableTimes.startTime + 1 },
+            (_, i) => i + this.availableTimes.startTime
+        );
+
+        const unavailableTimes = tablingResponse.data.timeSlots
+            .filter(slot => !slot.available)
+            .map(slot => parseInt(slot.time.split(':')[0]));
+
+        this.availableTimes.invalidList = [...this.availableTimes.invalidList, ...unavailableTimes];
+
       } catch (error) {
         console.error("시간 정보를 불러오는 데 실패했습니다.", error);
       }
@@ -175,17 +185,28 @@ export default {
     checkTime(time) {
       return this.availableTimes.invalidList.includes(time);
     },
-    goToPayment() {
+    formatDate(date) {
+      if (!date) return '';
+      const d = new Date(date);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+    async goToPayment() {
       try {
-        const response = axios.post('/tabling', {
+        const time = String(this.selectedTimes[0]).padStart(2, '0');
+        const formattedTime = `${time}:00:00`;
+
+        const response = await axios.post('/tabling', {
           cafeId: this.$route.params.id,
           memberId: this.memberId,
           date: this.formatDate(this.date),
-          reserveTime: this.selectedTimes[0],
+          reserveTime: formattedTime,
           numberOfGuests: this.selectedPersons
         });
         if (response.data) {
-          this.$router.push({
+          await this.$router.push({
             path: '/payment',
             query: {
               tablingId: response.data.id,
@@ -201,26 +222,6 @@ export default {
         console.error("예약 생성에 실패했습니다.", error);
         alert(error.response?.data?.message || "예약 생성에 실패했습니다.");
       }
-    },
-    fetchDummyData() {
-      // 더미 데이터
-      this.availableTimes = {
-        startTime: 10,
-        endTime: 20,
-        maxTime: 3,
-        invalidList: [10, 11, 12],
-      };
-
-      this.allTimes = Array.from(
-          { length: this.availableTimes.endTime - this.availableTimes.startTime + 1 },
-          (_, i) => i + this.availableTimes.startTime
-      );
-
-      this.cafeBookInfo = {
-        perPerson: 10000,
-        minPayment: 30000,
-        maxPerson: 4,
-      };
     },
   },
 };
