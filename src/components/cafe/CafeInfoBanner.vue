@@ -8,7 +8,7 @@
   >
     <!-- 카페 배경 이미지 -->
     <v-img
-        :src="cafeInfo.imageUrl || ''"
+        :src="cafeInfo?.imageUrl"
         height="150"
         cover
         gradient="to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)"
@@ -30,7 +30,7 @@
                   class="cafe-info-banner__logo"
               >
                 <v-img
-                    :src="cafeInfo.logoUrl || defaultImage"
+                    :src="!!cafeInfo?.logoUrl ? cafeInfo.logoUrl : defaultImage"
                     alt="카페 로고"
                     cover
                 ></v-img>
@@ -43,11 +43,11 @@
                 cols="auto"
             >
               <h2 class="cafe-info-banner__name">
-                {{ cafeInfo.name }}
+                {{ cafeInfo?.name }}
               </h2>
 
               <address class="cafe-info-banner__address">
-                {{ cafeInfo.address }}
+                {{ cafeInfo?.address }}
               </address>
 
               <!-- 별점 표시 -->
@@ -57,7 +57,7 @@
                     hover
                     :length="5"
                     :size="32"
-                    :model-value="cafeInfo.averageGrade"
+                    :model-value="cafeInfo?.averageGrade"
                     disabled
                     readonly
                     active-color="yellow-darken-2"
@@ -66,7 +66,7 @@
 
               <!-- 연락처 -->
               <div>
-                <strong>연락처</strong> : {{ cafeInfo.phoneNum }}
+                <strong>연락처</strong> : {{ cafeInfo?.phoneNum }}
               </div>
             </v-col>
           </v-row>
@@ -78,17 +78,6 @@
 <script>
 import defaultImagePath from '@/assets/images/default-cafe-logo.png';
 
-class CafeInfo {
-  constructor(name, address, imageUrl, logoUrl, averageGrade, phoneNum) {
-    this.name = name;
-    this.address = address;
-    this.imageUrl = imageUrl ? imageUrl : "";
-    this.logoUrl = logoUrl ? logoUrl : defaultImagePath;
-    this.averageGrade = averageGrade;
-    this.phoneNum = phoneNum;
-  }
-}
-
 export default {
   name: 'CafeInfoBanner',
   data() {
@@ -98,7 +87,7 @@ export default {
   },
   props: {
     cafeInfo: {
-      type: CafeInfo,
+      type: Object,
       required: true,
     },
   },

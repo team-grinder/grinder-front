@@ -165,6 +165,7 @@ export default {
       this.sellerDialog = false;
     },
   },
+  emits: ['change-view'],
   mounted() {
     // 북마크 여부 확인
     // this.isBookmarked = this.$store.getters.isBookmarked(this.cafeInfo.id);
