@@ -198,29 +198,27 @@ export default {
         const time = String(this.selectedTimes[0]).padStart(2, '0');
         const formattedTime = `${time}:00:00`;
 
-        const response = await axios.post('/tabling', {
+        localStorage.setItem('pendingReservation', JSON.stringify({
           cafeId: this.$route.params.id,
           memberId: this.memberId,
           date: this.formatDate(this.date),
           reserveTime: formattedTime,
-          numberOfGuests: this.selectedPersons
+          numberOfGuests: this.selectedPersons,
+          totalPrice: this.totalPrice
+        }));
+
+        await this.$router.push({
+          path: '/payment',
+          query: {
+            reservationDate: this.formatDate(this.date),
+            selectedTimes: this.selectedTimes.join(','),
+            selectedPersons: this.selectedPersons,
+            totalPrice: this.totalPrice
+          }
         });
-        if (response.data) {
-          await this.$router.push({
-            path: '/payment',
-            query: {
-              tablingId: response.data.id,
-              memberId: this.memberId,
-              reservationDate: this.date,
-              selectedTimes: this.selectedTimes.join(','),
-              selectedPersons: this.selectedPersons,
-              totalPrice: this.totalPrice,
-            },
-          });
-        }
       } catch (error) {
-        console.error("예약 생성에 실패했습니다.", error);
-        alert(error.response?.data?.message || "예약 생성에 실패했습니다.");
+        console.error("결제 페이지 이동 실패", error);
+        alert("결제 페이지로 이동할 수 없습니다. 다시 시도해주세요.");
       }
     },
   },

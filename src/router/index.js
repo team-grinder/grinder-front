@@ -67,12 +67,14 @@ const routes = [
     },
     {
         path: '/payment/success',
-        component: { template: '<div>결제가 성공적으로 완료되었습니다.</div>' },
+        component: () => import('@/views/PaymentSuccess.vue'),
+        props: true
     },
     {
         path: '/payment/fail',
-        component: { template: '<div>결제가 실패하였습니다. 다시 시도해주세요.</div>' },
-    },
+        component: () => import('@/views/PaymentFail.vue'),
+        props: true
+    }
 ];
 
 const router = createRouter({

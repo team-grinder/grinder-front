@@ -105,13 +105,19 @@ export default {
       }
     },
     async processPayment() {
+      // 로컬 스토리지에 예약 정보 저장
+      const reservationData = JSON.parse(localStorage.getItem('pendingReservation'));
+
+      if (!reservationData) {
+        throw new Error('예약 정보를 찾을 수 없습니다.');
+      }
       try {
         await this.widgets.requestPayment({
           orderId: `order_${new Date().getTime()}`,
           orderName: `카페 예약 (${this.reservationDate})`,
           successUrl: `${window.location.origin}/payment/success`,
           failUrl: `${window.location.origin}/payment/fail`,
-          customerName: "테스트 사용자",
+          customerName: this.memberId || "사용자",
         });
       } catch (error) {
         if (error.code === "USER_CANCEL") {
@@ -119,6 +125,8 @@ export default {
         } else {
           alert(`결제에 실패했습니다: ${error.message}`);
         }
+        //예약페이지 리다이렉트
+        this.$router.push(`/book/${reservationData.cafeId}`);
       }
     },
   },
