@@ -41,7 +41,6 @@
                   >
                     <v-list-item-title
                         class="pa-2"
-                        @click="item."
                     >{{ item.title }}
                     </v-list-item-title>
                   </v-list-item>
