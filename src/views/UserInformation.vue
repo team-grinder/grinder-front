@@ -14,10 +14,12 @@
     <component
         :is="currentView"
         :is-authenticated="isAuthenticated"
+        :userId="userId"
         :nickname="nickname"
         :image-url="imageUrl"
         :loading="loading"
         :articles="articles"
+        :key="$route.fullPath"
     />
   </div>
 </template>
@@ -142,8 +144,16 @@ export default {
     },
   },
   async created() {
+    await useUserStore().checkSession();
+
     if (!this.isAuthenticated) {
       await router.push({ name: "Login" });
+    }
+
+    // 쿼리 파라미터에서 'view' 값이 존재하면 currentView를 설정
+    console.log(this.$route.query.view);
+    if (this.$route.query.view) {
+      this.currentView = this.$route.query.view;
     }
 
     await this.getArticles();

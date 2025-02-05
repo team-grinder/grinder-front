@@ -105,21 +105,32 @@
         </v-card-text>
         <v-card-actions>
           <v-btn color="red-lighten-1" @click="reviewDialog = false">취소</v-btn>
-          <v-btn color="green-darken-1" @click="submitReview">확인</v-btn>
+          <v-btn color="green-darken-1" @click="submitFeed">확인</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
   </v-container>
 </template>
 
 <script>
+import $axios from "@/plugins/axios";
+import router from "@/router";
+
 export default {
   name: "BookList",
+  props: {
+    userId: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       books: [
         {
           id: 1,
+          cafeId: 1,
           cafeName: "스타벅스",
           period: "2025-01-15 05:00 ~ 07:00",
           address: "서울시 강남구",
@@ -132,6 +143,7 @@ export default {
         },
         {
           id: 2,
+          cafeId: 2,
           cafeName: "스타벅스 2호",
           period: "2025-01-15 05:00 ~ 07:00",
           address: "서울시 강남구",
@@ -144,6 +156,7 @@ export default {
         },
         {
           id: 3,
+          cafeId: 3,
           cafeName: "스타벅스 3호",
           period: "2025-01-15 05:00 ~ 07:00",
           address: "서울시 강남구",
@@ -156,6 +169,7 @@ export default {
         },
         {
           id: 4,
+          cafeId: 4,
           cafeName: "스타벅스 4호",
           period: "2025-01-15 05:00 ~ 07:00",
           address: "서울시 강남구",
@@ -212,21 +226,38 @@ export default {
       this.reviewInfo = book;
       this.reviewDialog = true;
     },
-    submitReview() {
-      if (!this.reviewContent.trim()) {
-        alert("리뷰 내용을 입력해주세요.");
-        return;
+    submitFeed() {
+      console.log(this.reviewInfo);
+      // FormData 객체 생성
+      const formData = new FormData();
+      formData.append('memberId', this.userId);
+      formData.append('bookId', this.reviewInfo.id);
+      formData.append('cafeId', this.reviewInfo.cafeId);
+      formData.append('content', this.reviewContent);
+      formData.append('grade', this.reviewRating);
+
+      // 파일 데이터 추가 (여러 파일일 경우 반복문 사용)
+      if (this.reviewImages && this.reviewImages.length > 0) {
+        this.reviewImages.forEach(file => {
+          // 'images'라는 key로 여러 파일을 추가
+          formData.append('images', file);
+        });
       }
-      // 리뷰 작성 API 호출
-      console.log("리뷰 제출", {
-        id: this.reviewInfo.id,
-        review: this.reviewContent,
-        rating: this.reviewRating,
-        images: this.reviewImages,
-      });
-      alert("리뷰가 작성되었습니다.");
-      this.reviewDialog = false;
-      this.reviewContent = "";
+
+      // axios로 multipart/form-data 요청 전송
+      $axios.post('feed/create', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+          .then(response => {
+            console.log("Feed 생성 성공", response.data);
+
+            router.push({ name: 'UserInformation', query: { view: 'BookList' } });
+          })
+          .catch(error => {
+            console.error("Feed 생성 실패", error);
+          });
     },
   },
 };

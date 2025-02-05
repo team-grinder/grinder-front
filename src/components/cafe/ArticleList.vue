@@ -24,9 +24,29 @@
                 {{ article.period }}
               </span>
               <v-spacer></v-spacer>
-              <v-icon v-if="article.nickname === nickname">
-                mdi-dots-vertical
-              </v-icon>
+              <v-menu v-if="article.isMine">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                      v-bind="props"
+                      icon="mdi-dots-vertical"
+                      variant="text"
+                      @click="likeArticle(aIndex)">
+                  </v-btn>
+                </template>
+                <v-list>
+                  <v-list-item
+                      v-for="(item, index) in mineList"
+                      :key="index"
+                      :value="index"
+                  >
+                    <v-list-item-title
+                        class="pa-2"
+                        @click="item."
+                    >{{ item.title }}
+                    </v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </div>
 
             <div class="d-flex align-center text-gray-500 mt-2">
@@ -54,13 +74,13 @@
             <div class="d-flex flex-column mt-3">
               <v-row class="flex-row">
                 <v-col
-                    class="d-flex justify-center align-center"
+                    class="d-flex justify-start"
                     v-for="(image, index) in article.attachments"
                     :key="index"
                 >
                   <v-img
-                      :src="image"
-                      contain
+                      :src="image.imageUrl"
+                      :rounded="true"
                       max-height="150"
                   />
                 </v-col>
@@ -75,6 +95,7 @@
                     color="green-darken-1"
                     icon="mdi-thumb-up"
                     variant="text"
+                    :active="article.isLike"
                     @click="likeArticle(aIndex)"
                 ></v-btn>
                 <span>{{ article.likes }}</span>
@@ -234,9 +255,39 @@ export default {
   data() {
     return {
       defaultImage: defaultImage,
+      lastScrollLoad: 0,      // 마지막 요청 시각 (ms)
+      throttleInterval: 1000, // 1초 간격 (원하는 값으로 조정 가능)
+      lastClick: 0,           // 마지막 클릭 시각 (ms)
+      mineList: [
+        {
+          title : "수정",
+        },
+        {
+          title : "삭제",
+        },
+      ],
     };
   },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll);
+  },
+  beforeMount() { // Vue3 사용 시 beforeUnmount() 사용
+    window.removeEventListener('scroll', this.handleScroll);
+  },
   methods: {
+    // 스크롤 이벤트 핸들러 (throttle 적용)
+    handleScroll() {
+      const now = Date.now();
+      // 마지막 요청 이후 throttleInterval(1초) 이내면 리턴
+      if (now - this.lastScrollLoad < this.throttleInterval) return;
+
+      // 페이지 하단에 300px 이내로 도달하면
+      if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+        this.lastScrollLoad = now;
+        // 부모 컴포넌트에 더 많은 게시글 요청 이벤트를 emit
+        this.$emit('load-more');
+      }
+    },
     // 새 댓글 등록
     addComment(articleIndex) {
       const article = this.articles[articleIndex];
@@ -284,13 +335,49 @@ export default {
     },
 
     likeArticle(articleIndex) {
-      this.$props.articles[articleIndex].likes++;
+      if (!this.isAuthenticated) {
+        alert('로그인이 필요한 서비스입니다.');
+        return;
+      }
+
+      // 인터벌을 통한 중복 클릭 방지
+      if (Date.now() - this.lastClick < 1000) return;
+
+      const article = this.articles[articleIndex];
+
+      if (article.isLike) {
+        // 좋아요 취소 API 호출
+        try {
+          $axios.delete(`like/feed/${article.id}`)
+              .then(() => {
+                // 좋아요 수 감소
+                article.likes--;
+                article.isLike = false;
+              });
+        } catch (err) {
+          console.error('좋아요 취소 실패', err);
+        }
+      } else {
+        // 좋아요 API 호출
+        try {
+          $axios.post(`like/feed/${article.id}`)
+              .then(() => {
+                // 좋아요 수 증가
+                article.likes++;
+                article.isLike = true;
+              });
+        } catch (err) {
+          console.error('좋아요 실패', err);
+        }
+      }
+
+      this.lastClick = Date.now();
+
     },
 
     toggleComments(articleIndex) {
       const article = this.articles[articleIndex];
       // 댓글 창 열림/닫힘
-      console.log(article);
       article.showComments = !article.showComments;
 
       // 열리는 시점 && 아직 한 번도 로딩된 적이 없는 경우만 fetch
@@ -310,7 +397,6 @@ export default {
           }
         });
 
-        console.log(response.data.data);
 
         // 서버 응답 예시: { code: "200", data: { content: [...], hasNext: true }}
         const serverComments = response.data.data.content || [];
