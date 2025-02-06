@@ -29,7 +29,9 @@ export default {
   data() {
     return {
       loading: true,
-      paymentInfo: null
+      paymentInfo: null,
+      tablingId: null,
+      paymentId: null
     }
   },
   computed: {
@@ -40,7 +42,13 @@ export default {
   },
   methods: {
     goToMain() {
-      this.$router.push('/');
+      this.$router.push({
+        path: '/',
+        query: {
+          tablingId: this.tablingId,
+          paymentId: this.paymentId
+        }
+      });
     }
   },
   async created() {
@@ -64,7 +72,6 @@ export default {
         date: reservationData.date,
         reserveTime: reservationData.reserveTime,
         numberOfGuests: reservationData.numberOfGuests,
-        paymentId: paymentResponse.data.paymentId
       });
 
 
@@ -84,19 +91,10 @@ export default {
           amount: amount
       };
 
+        this.tablingId = bookingResponse.data.id;
+        this.paymentId = paymentResponse.data.paymentId;
         // 성공 후 임시 저장 데이터 삭제
         localStorage.removeItem('pendingReservation');
-
-        // 예약 완료 페이지로 이동
-        setTimeout(() => {
-          this.$router.push({
-            path: '/',
-            query: {
-              tablingId: bookingResponse.data.id,
-              paymentId: paymentResponse.data.paymentId
-            }
-          });
-        }, 2000);
       }
     } catch (error) {
       console.error('결제/예약 처리 실패:', error);
