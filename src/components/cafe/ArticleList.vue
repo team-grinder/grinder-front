@@ -226,28 +226,15 @@
       </v-col>
     </v-row>
   </v-container>
-
-  <feed-write-dialog
-      feed-title="게시글 수정"
-      @write="writeArticle"
-      v-model="reviewDialog"
-      :is-create="false"
-      :reviewContent="reviewContent"
-      :reviewImages="reviewImages"
-      :reviewRating="reviewRating"
-      value
-  />
 </template>
 
 <script>
 import defaultImage from "@/assets/images/basic-user-img.png";
-import FeedWriteDialog from "@/components/cafe/FeedWriteDialog.vue";
 import $axios from "@/plugins/axios";
 
 export default {
   name: 'ArticleList',
   components: {
-    FeedWriteDialog,
   },
   props: {
     isAuthenticated: {
@@ -269,19 +256,11 @@ export default {
   },
   data() {
     return {
-      reviewDialog: false,
-      reviewContent: '',
-      reviewImages: [],
-      reviewRating: 3,
       defaultImage: defaultImage,
       lastScrollLoad: 0,      // 마지막 요청 시각 (ms)
       throttleInterval: 1000, // 1초 간격 (원하는 값으로 조정 가능)
       lastClick: 0,           // 마지막 클릭 시각 (ms)
-
       mineList: [
-        {
-          title : "수정",
-        },
         {
           title : "삭제",
         },
@@ -296,9 +275,7 @@ export default {
   },
   methods: {
     handleMenuAction(item, article, aIndex) {
-      if (item.title === '수정') {
-        this.editArticle(article);
-      } else if (item.title === '삭제') {
+      if (item.title === '삭제') {
         if (confirm("게시글을 삭제하시겠습니까?")) {
           this.deleteArticle(article, aIndex);
         }
@@ -314,19 +291,6 @@ export default {
       } catch (err) {
         console.error('게시글 삭제 실패', err);
       }
-    },
-
-    editArticle(article) {
-      // 게시글 수정 페이지로 이동
-      this.reviewContent = article.content;
-      this.reviewImages = article.attachments;
-      this.reviewRating = article.rating;
-
-      this.reviewDialog = true;
-    },
-
-    writeArticle() {
-      // 게시글 작성 페이지로 이동
     },
 
     // 스크롤 이벤트 핸들러 (throttle 적용)
