@@ -59,56 +59,17 @@
       </v-card>
     </v-dialog>
 
-    <!-- 리뷰 작성 모달 -->
-    <v-dialog v-model="reviewDialog" max-width="500">
-      <v-card>
-        <v-card-title>
-          리뷰 작성
-        </v-card-title>
-        <v-card-text>
-          <p>{{ reviewInfo.cafeName }}에 대한 리뷰를 작성해주세요.</p>
-          <v-textarea
-              v-model="reviewContent"
-              rows="5"
-              variant="underlined"
-              class="w-100">
-          </v-textarea>
-          <p>사진을 첨부해주세요.</p>
-          <v-file-input
-              v-model="reviewImages"
-              label="File input"
-              prepend-icon="mdi-camera"
-              variant="underlined"
-              accept="image/*"
-              multiple
-          />
-          <div
-              v-if="Array.isArray(reviewImages) && reviewImages.length"
-              class="d-flex justify-center">
-            <v-img
-                v-for="(image, index) in reviewImages"
-                :key="index"
-                :src="createImageUrl(image)"
-                class="my-2 ma-1"
-                max-width="100"
-                @remove="revokeImageUrl(image)"
-            ></v-img>
-          </div>
-          <p>평점을 선택해주세요.</p>
-          <v-rating
-              hover
-              :length="5"
-              :size="32"
-              :model-value="reviewRating"
-              active-color="yellow-darken-2"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="red-lighten-1" @click="reviewDialog = false">취소</v-btn>
-          <v-btn color="green-darken-1" @click="submitFeed">확인</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <FeedWriteDialog
+        v-model="reviewDialog"
+        feedTitle="리뷰작성"
+        :is-create="true"
+        :reviewInfo="reviewInfo"
+        :reviewContent="reviewContent"
+        :reviewImages="reviewImages"
+        :reviewRating="reviewRating"
+        @submit="submitFeed"
+        value
+    />
 
   </v-container>
 </template>
@@ -116,12 +77,20 @@
 <script>
 import $axios from "@/plugins/axios";
 import router from "@/router";
+import FeedWriteDialog from "@/components/cafe/FeedWriteDialog";
 
 export default {
   name: "BookList",
+  components: {
+    FeedWriteDialog,
+  },
   props: {
     userId: {
       type: Number,
+      required: true,
+    },
+    nickname: {
+      type: String,
       required: true,
     },
   },
@@ -191,17 +160,6 @@ export default {
     };
   },
   methods: {
-    createImageUrl(file) {
-      if (file instanceof File) {
-        return URL.createObjectURL(file);
-      }
-      return '';
-    },
-    revokeImageUrl(file) {
-      if (file instanceof File) {
-        URL.revokeObjectURL(file);
-      }
-    },
     confirmCancel(book) {
       this.cancelInfo = book;
       this.cancelDialog = true;
@@ -210,7 +168,7 @@ export default {
       // 예약 취소 API 호출
       const payload = {
         id: this.cancelInfo.id,
-        nickname: "사용자 닉네임", // 사용자 닉네임 정보 제공
+        nickname: this.nickname,
       };
       this.$axios.post(`/book/${this.cancelInfo.id}`, payload)
           .then(() => {
@@ -226,21 +184,21 @@ export default {
       this.reviewInfo = book;
       this.reviewDialog = true;
     },
-    submitFeed() {
+    submitFeed(payload) {
       console.log(this.reviewInfo);
+      console.log(this.reviewImages);
       // FormData 객체 생성
       const formData = new FormData();
       formData.append('memberId', this.userId);
       formData.append('bookId', this.reviewInfo.id);
       formData.append('cafeId', this.reviewInfo.cafeId);
-      formData.append('content', this.reviewContent);
-      formData.append('grade', this.reviewRating);
+      formData.append("content", payload.content);
+      formData.append("grade", payload.rating);
 
       // 파일 데이터 추가 (여러 파일일 경우 반복문 사용)
-      if (this.reviewImages && this.reviewImages.length > 0) {
-        this.reviewImages.forEach(file => {
-          // 'images'라는 key로 여러 파일을 추가
-          formData.append('images', file);
+      if (payload.images && payload.images.length > 0) {
+        payload.images.forEach(file => {
+          formData.append("images", file);
         });
       }
 
@@ -254,6 +212,8 @@ export default {
             console.log("Feed 생성 성공", response.data);
 
             router.push({ name: 'UserInformation', query: { view: 'BookList' } });
+
+            this.reviewDialog = false;
           })
           .catch(error => {
             console.error("Feed 생성 실패", error);
