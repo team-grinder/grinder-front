@@ -84,8 +84,6 @@ export default {
       try {
         const response = await $axios.get(`cafe/${this.id}`);
 
-        console.log(response.data);
-
         this.cafeInfo = response.data.data;
       } catch (err) {
         this.error = '카페 정보를 불러올 수 없습니다.';
@@ -95,51 +93,7 @@ export default {
     },
 
     async getArticles() {
-      this.articles = [
-        {
-          id: 1,
-          nickname: "홍길동",
-          memberImage: "",
-          content: "카페가 너무 좋아요!",
-          rating: 4.5,
-          period: "2025-01-01",
-          likes: 2,
-          attachments: [
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-          ],
-          showComments: false, // 댓글 영역 토글
-          newComment: {
-            content: "",
-          },
-          comments: [
-            {
-              nickname: "김영희",
-              memberImage: "",
-              content: "저도 동감합니다!",
-              showReplies: false,
-              newReply: {
-                content: "",
-              },
-              replies: [
-                {
-                  nickname: "이철수",
-                  memberImage: "",
-                  content: "저도 좋아요!",
-                  showReplies: false,
-                  newReply: { content: "" },
-                  replies: []
-                }
-              ]
-            },
-          ]
-        },
-      ];
-
+      this.loading = true;
       try {
         const response = await $axios.get(`feed/cafe/${this.id}`, {
           params: {
@@ -147,13 +101,30 @@ export default {
             size: this.size,
           }
         });
-        console.log(response.data);
+
+        const { content } = response.data.data; // content 배열
+
+        // ① 서버 데이터를 ArticleList에서 요구하는 형태로 변환
+        this.articles = content.map(item => ({
+          id: item.feedId,
+          nickname: item.nickname,
+          memberImage: item.memberImageUrl || '', // null 방어
+          content: item.content,
+          rating: item.grade,            // Vue 템플릿에서 article.rating 사용
+          period: item.createDate,       // "YYYY-MM-DD" 문자열
+          likes: item.likes,             // 좋아요 수
+          attachments: item.imageTagList || [], // 이미지가 들어있는 배열
+          showComments: false,           // 댓글창 펼침 여부
+          newComment: { content: '' },   // 새 댓글 작성 폼
+          comments: [],                  // 실제 댓글 목록
+          commentPage: 0,                // 댓글 페이지
+        }));
       } catch (err) {
         this.error = '게시글을 불러올 수 없습니다.';
       } finally {
         this.loading = false;
       }
-    }
+    },
   },
   async created() {
     if (!this.isAuthenticated) {

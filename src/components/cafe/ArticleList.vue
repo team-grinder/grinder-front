@@ -152,6 +152,16 @@
                     <div class="ml-3">{{ reply.content }}</div>
                   </div>
 
+                  <!-- ▼ 댓글 "더보기" 버튼 ▼ -->
+                  <div class="d-flex justify-center" v-if="article.hasMoreComments">
+                    <v-btn
+                        color="green-darken-1"
+                        @click="loadMoreComments(aIndex)"
+                    >
+                      더보기
+                    </v-btn>
+                  </div>
+
                   <div
                       class="d-flex align-center mt-2"
                       v-if="isAuthenticated">
@@ -199,6 +209,7 @@
 
 <script>
 import defaultImage from "@/assets/images/basic-user-img.png";
+import $axios from "@/plugins/axios";
 
 export default {
   name: 'ArticleList',
@@ -275,9 +286,60 @@ export default {
     likeArticle(articleIndex) {
       this.$props.articles[articleIndex].likes++;
     },
+
     toggleComments(articleIndex) {
-      this.$props.articles[articleIndex].showComments =
-          !this.articles[articleIndex].showComments;
+      const article = this.articles[articleIndex];
+      // 댓글 창 열림/닫힘
+      console.log(article);
+      article.showComments = !article.showComments;
+
+      // 열리는 시점 && 아직 한 번도 로딩된 적이 없는 경우만 fetch
+      if (article.showComments && article.comments.length === 0) {
+        this.fetchComments(articleIndex);
+      }
+    },
+
+    async fetchComments(articleIndex) {
+      const feed = this.articles[articleIndex];
+      try {
+        // 서버로부터 댓글 목록 불러오기 (예: page=article.commentPage, size=10)
+        const response = await $axios.get(`comment/${feed.id}`, {
+          params: {
+            page: feed.commentPage,
+            size: 10
+          }
+        });
+
+        console.log(response.data.data);
+
+        // 서버 응답 예시: { code: "200", data: { content: [...], hasNext: true }}
+        const serverComments = response.data.data.content || [];
+        // 기존에 로드된 댓글 뒤에 추가
+        feed.comments.push(...serverComments.map(c => ({
+          nickname: c.nickname,
+          memberImage: c.memberImageUrl || '',
+          content: c.content,
+          showReplies: false,
+          replies: [],
+          // 대댓글 페이징 처리 시 필요
+          replyPage: 1,
+          hasMoreReplies: true,
+          newReply: { content: '' },
+        })));
+
+        // “hasNext” 여부에 따라 hasMoreComments를 업데이트
+        feed.hasMoreComments = response.data.data.hasNext;
+
+        // 댓글을 성공적으로 가져왔다면, 페이지 번호 증가
+        feed.commentPage += 1;
+      } catch (err) {
+        console.error('댓글 불러오기 실패', err);
+      }
+    },
+
+    // "더보기" 버튼 클릭 시 다음 페이지 호출
+    async loadMoreComments(articleIndex) {
+      await this.fetchComments(articleIndex);
     },
   },
 };
