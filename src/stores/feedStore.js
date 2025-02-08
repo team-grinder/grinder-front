@@ -47,6 +47,7 @@ export const useFeedStore = defineStore("feed", {
                     rating: item.grade,            // Vue 템플릿에서 article.rating 사용
                     period: item.createDate,       // "YYYY-MM-DD" 문자열
                     likes: item.likes,             // 좋아요 수
+                    commentCount: item.commentCount, // 댓글 수
                     attachments: item.imageTagList || [], // 이미지가 들어있는 배열
                     showComments: false,           // 댓글창 펼침 여부
                     newComment: {content: ''},   // 새 댓글 작성 폼

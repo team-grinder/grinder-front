@@ -29,8 +29,7 @@
                   <v-btn
                       v-bind="props"
                       icon="mdi-dots-vertical"
-                      variant="text"
-                      @click="likeArticle(aIndex)">
+                      variant="text">
                   </v-btn>
                 </template>
                 <v-list>
@@ -108,7 +107,7 @@
                     variant="text"
                     @click="toggleComments(aIndex)"
                 ></v-btn>
-                <span>{{ article.comments.length }}</span>
+                <span>{{ article.commentCount }}</span>
               </div>
             </div>
 
@@ -229,9 +228,9 @@
 </template>
 
 <script>
-import defaultImage from "@/assets/images/basic-user-img.png";
-import { useFeedStore } from "@/stores/feedStore";
 import $axios from "@/plugins/axios";
+import { useFeedStore } from "@/stores/feedStore";
+import defaultImage from "@/assets/images/basic-user-img.png";
 
 export default {
   name: 'ArticleList',
@@ -291,7 +290,7 @@ export default {
       try {
         $axios.delete(`feed/${article.id}`)
             .then(() => {
-              this.useFeedStore.feedList.splice(aIndex, 1);
+              this.feedList.splice(aIndex, 1);
             });
       } catch (err) {
         console.error('게시글 삭제 실패', err);
@@ -312,48 +311,54 @@ export default {
       }
     },
     // 새 댓글 등록
-    addComment(articleIndex) {
-      const article = this.useFeedStore.feedList[articleIndex];
+    addComment(feedIndex) {
+      const article = this.feedList[feedIndex];
       const { content } = article.newComment;
       if (content.trim()) {
-        // 새 댓글 객체 생성
-        const newC = {
-          nickname: this.nickname,
-          memberImage: this.imageUrl,
-          content: content.trim(),
-          showReplies: false,
-          newReply: { content: "" },
-          replies: [],
-        };
-        article.comments.push(newC);
-        // 입력 폼 초기화
-        article.newComment = { content: "" };
+        try {
+          $axios.post(`comment/create`,
+              {
+                feedId: article.id,
+                content: content
+              })
+              .then((data) => {
+                article.newComment.content = '';
+                // 새로 불러오기
+                article.comments.push(this.fetchComment(data.data));
+              });
+        } catch (err) {
+          console.error('댓글 등록 실패', err);
+        }
       }
     },
 
     // 대댓글 토글
     toggleReplies(articleIndex, commentIndex) {
-      const comment = this.useFeedStore.feedList[articleIndex].comments[commentIndex];
+      const comment = this.feedList[articleIndex].comments[commentIndex];
       comment.showReplies = !comment.showReplies;
     },
 
     // 대댓글 등록
     addReply(articleIndex, commentIndex) {
-      const comment = this.useFeedStore.feedList[articleIndex].comments[commentIndex];
+      const feed = this.feedList[articleIndex];
+      const comment = this.feedList[articleIndex].comments[commentIndex];
       const { content } = comment.newReply;
       if (content.trim()) {
-        // 새 대댓글 객체 생성
-        const newR = {
-          nickname: this.nickname,
-          memberImage: this.imageUrl,
-          content: content.trim(),
-          showReplies: false,
-          newReply: { content: "" },
-          replies: [],
-        };
-        comment.replies.push(newR);
-        // 입력 폼 초기화
-        comment.newReply = { content: "" };
+        try {
+          $axios.post(`comment/create`,
+              {
+                feedId: feed.id,
+                content: content,
+                parentCommentId: comment.id
+              })
+              .then((data) => {
+                comment.newReply.content = '';
+                // 새로 불러오기
+                comment.replies.push(this.fetchComment(data.data));
+              });
+        } catch (err) {
+          console.error('대댓글 등록 실패', err);
+        }
       }
     },
 
@@ -366,7 +371,7 @@ export default {
       // 인터벌을 통한 중복 클릭 방지
       if (Date.now() - this.lastClick < 1000) return;
 
-      const article = this.useFeedStore.feedList[articleIndex];
+      const article = this.feedList[articleIndex];
 
       if (article.isLike) {
         // 좋아요 취소 API 호출
@@ -399,7 +404,7 @@ export default {
     },
 
     toggleComments(articleIndex) {
-      const article = this.useFeedStore.feedList[articleIndex];
+      const article = this.feedList[articleIndex];
       // 댓글 창 열림/닫힘
       article.showComments = !article.showComments;
 
@@ -410,7 +415,7 @@ export default {
     },
 
     async fetchComments(articleIndex) {
-      const feed = this.useFeedStore.feedList[articleIndex];
+      const feed = this.feedList[articleIndex];
       try {
         // 서버로부터 댓글 목록 불러오기 (예: page=article.commentPage, size=10)
         const response = await $axios.get(`comment/${feed.id}`, {
@@ -420,8 +425,6 @@ export default {
           }
         });
 
-
-        // 서버 응답 예시: { code: "200", data: { content: [...], hasNext: true }}
         const serverComments = response.data.data.content || [];
         // 기존에 로드된 댓글 뒤에 추가
         feed.comments.push(...serverComments.map(c => ({
@@ -441,6 +444,26 @@ export default {
 
         // 댓글을 성공적으로 가져왔다면, 페이지 번호 증가
         feed.commentPage += 1;
+      } catch (err) {
+        console.error('댓글 불러오기 실패', err);
+      }
+    },
+
+    // 작성한 댓글 단건 조회
+    async fetchComment(commentId) {
+      try {
+        const response = await $axios.get(`comment/${commentId}`);
+        const serverComment = response.data.data;
+        return {
+          nickname: serverComment.nickname,
+          memberImage: serverComment.memberImageUrl || '',
+          content: serverComment.content,
+          showReplies: false,
+          replies: [],
+          replyPage: 0,
+          hasMoreReplies: true,
+          newReply: { content: '' },
+        };
       } catch (err) {
         console.error('댓글 불러오기 실패', err);
       }

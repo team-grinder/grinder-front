@@ -31,15 +31,15 @@
 </template>
 
 <script>
+import router from "@/router";
+import $axios from '@/plugins/axios';
+import { useUserStore } from "@/stores/userStore";
+import { useFeedStore } from "@/stores/feedStore";
 import CafeInfoBanner from '@/components/cafe/CafeInfoBanner.vue';
 import CafeInfoTab from '@/components/cafe/CafeInfoTab.vue';
 import ArticleList from "@/components/cafe/ArticleList.vue";
 import MenuList from "@/components/cafe/MenuList.vue";
 import BookPage from "@/components/cafe/BookPage.vue";
-import { useUserStore } from "@/stores/userStore";
-import { useFeedStore } from "@/stores/feedStore";
-import $axios from '@/plugins/axios';
-import router from "@/router";
 
 export default {
   name: 'CafeInformation',
