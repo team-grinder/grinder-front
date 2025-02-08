@@ -18,21 +18,21 @@
         :nickname="nickname"
         :image-url="imageUrl"
         :loading="loading"
-        :articles="articles"
         :key="$route.fullPath"
     />
   </div>
 </template>
 
 <script>
+import router from "@/router";
+import $axios from "@/plugins/axios";
+import { useFeedStore } from "@/stores/feedStore";
+import { useUserStore } from "@/stores/userStore";
 import UserInfoBanner from "@/components/user/UserInfoBanner.vue";
 import UserInfoTab from "@/components/user/UserInfoTab.vue";
 import ArticleList from "@/components/cafe/ArticleList.vue";
 import BookList from "@/components/user/BookList.vue";
 import CafeManagement from "@/components/user/CafeManagement.vue";
-import { useUserStore } from "@/stores/userStore";
-import $axios from "@/plugins/axios";
-import router from "@/router";
 
 export default {
   name: "UserInformation" ,
@@ -49,7 +49,6 @@ export default {
       loading: true,
       currentView: "ArticleList",
       error: null,
-      articles: [],
       isCafeManager: true,
     };
   },
@@ -88,76 +87,27 @@ export default {
     },
 
     async getArticles() {
-      this.articles = [
-        {
-          id: 1,
-          nickname: "홍길동",
-          memberImage: "",
-          content: "카페가 너무 좋아요!",
-          rating: 4.5,
-          period: "2025-01-01",
-          likes: 2,
-          showComments: false, // 댓글 영역 토글
-          newComment: {
-            nickname: "",    // 새 댓글 작성 시 입력
-            memberImage: "",
-            content: "",
-          },
-          attachments: [
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-            "https://via.placeholder.com/150",
-          ],
-          comments: [
-            {
-              nickname: "김영희",
-              memberImage: "",
-              content: "저도 동감합니다!",
-              showReplies: false,
-              newReply: { content: "" },
-              replies: [
-                {
-                  nickname: "이철수",
-                  memberImage: "",
-                  content: "저도 좋아요!",
-                  showReplies: false,
-                  newReply: { content: "" },
-                  replies: []
-                }
-              ]
-            },
-          ]
-        },
-      ];
-
-      try {
-        const response = await $axios.get(`cafe/${this.id}/articles`);
-        console.log(response.data);
-      } catch (err) {
-        this.error = '게시글을 불러올 수 없습니다.';
-      } finally {
-        this.loading = false;
-      }
+      await useFeedStore().getCafeFeedList();
     },
   },
   async created() {
-    await useUserStore().checkSession();
+    await useUserStore().resetAndCheckSession();
 
     if (!this.isAuthenticated) {
       await router.push({ name: "Login" });
     }
 
     // 쿼리 파라미터에서 'view' 값이 존재하면 currentView를 설정
-    console.log(this.$route.query.view);
     if (this.$route.query.view) {
       this.currentView = this.$route.query.view;
     }
 
     await this.getArticles();
 
+  },
+
+  async beforeUnmount() {
+    useFeedStore().resetFeedList();
   },
 }
 </script>

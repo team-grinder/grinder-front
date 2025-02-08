@@ -68,7 +68,6 @@
         :reviewImages="reviewImages"
         :reviewRating="reviewRating"
         @submit="submitFeed"
-        value
     />
 
   </v-container>
@@ -185,8 +184,6 @@ export default {
       this.reviewDialog = true;
     },
     submitFeed(payload) {
-      console.log(this.reviewInfo);
-      console.log(this.reviewImages);
       // FormData 객체 생성
       const formData = new FormData();
       formData.append('memberId', this.userId);
@@ -211,9 +208,11 @@ export default {
           .then(response => {
             console.log("Feed 생성 성공", response.data);
 
+            this.reviewDialog = false;
+
             router.push({ name: 'UserInformation', query: { view: 'BookList' } });
 
-            this.reviewDialog = false;
+
           })
           .catch(error => {
             console.error("Feed 생성 실패", error);

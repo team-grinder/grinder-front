@@ -56,10 +56,6 @@
 export default {
   name: "FeedWriteDialog",
   props: {
-    value: {
-      type: Boolean,
-      required: true,
-    },
     feedTitle: {
       type: String,
       required: true,

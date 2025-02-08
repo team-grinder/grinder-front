@@ -101,7 +101,7 @@ export default {
     },
 
     async getArticles() {
-      await useFeedStore().getFeedList(this.id);
+      await useFeedStore().getCafeFeedList(this.id);
     },
   },
 
@@ -113,7 +113,7 @@ export default {
     }
 
     await this.getCafeInfo();
-    await useFeedStore().getFeedList(this.id);
+    await useFeedStore().getCafeFeedList(this.id);
 
     this.loading = false;
   },
