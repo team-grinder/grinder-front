@@ -38,6 +38,12 @@ export const useUserStore = defineStore('user', {
             }
         },
 
+        // 리셋 후 세션 확인
+        async resetAndCheckSession() {
+            this.resetUser();
+            await this.checkSession();
+        },
+
         async logout() {
             try {
                 const response = await $axios.post('/logout', {});

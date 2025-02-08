@@ -3,7 +3,7 @@
       class="pa-4 mx-auto"
       width="1200">
     <v-row
-        v-for="(article, aIndex) in articles"
+        v-for="(article, aIndex) in feedList"
         :key="article.id"
         class="mb-4"
     >
@@ -230,6 +230,7 @@
 
 <script>
 import defaultImage from "@/assets/images/basic-user-img.png";
+import { useFeedStore } from "@/stores/feedStore";
 import $axios from "@/plugins/axios";
 
 export default {
@@ -249,10 +250,14 @@ export default {
       type: String,
       required: false,
     },
-    articles: {
-      type: Array,
-      required: true,
-    }
+  },
+  computed: {
+    feedStore() {
+      return useFeedStore();
+    },
+    feedList() {
+      return this.feedStore.feedList;
+    },
   },
   data() {
     return {
@@ -286,7 +291,7 @@ export default {
       try {
         $axios.delete(`feed/${article.id}`)
             .then(() => {
-              this.$props.articles.splice(aIndex, 1);
+              this.useFeedStore.feedList.splice(aIndex, 1);
             });
       } catch (err) {
         console.error('게시글 삭제 실패', err);
@@ -308,7 +313,7 @@ export default {
     },
     // 새 댓글 등록
     addComment(articleIndex) {
-      const article = this.articles[articleIndex];
+      const article = this.useFeedStore.feedList[articleIndex];
       const { content } = article.newComment;
       if (content.trim()) {
         // 새 댓글 객체 생성
@@ -328,13 +333,13 @@ export default {
 
     // 대댓글 토글
     toggleReplies(articleIndex, commentIndex) {
-      const comment = this.articles[articleIndex].comments[commentIndex];
+      const comment = this.useFeedStore.feedList[articleIndex].comments[commentIndex];
       comment.showReplies = !comment.showReplies;
     },
 
     // 대댓글 등록
     addReply(articleIndex, commentIndex) {
-      const comment = this.articles[articleIndex].comments[commentIndex];
+      const comment = this.useFeedStore.feedList[articleIndex].comments[commentIndex];
       const { content } = comment.newReply;
       if (content.trim()) {
         // 새 대댓글 객체 생성
@@ -361,7 +366,7 @@ export default {
       // 인터벌을 통한 중복 클릭 방지
       if (Date.now() - this.lastClick < 1000) return;
 
-      const article = this.articles[articleIndex];
+      const article = this.useFeedStore.feedList[articleIndex];
 
       if (article.isLike) {
         // 좋아요 취소 API 호출
@@ -394,7 +399,7 @@ export default {
     },
 
     toggleComments(articleIndex) {
-      const article = this.articles[articleIndex];
+      const article = this.useFeedStore.feedList[articleIndex];
       // 댓글 창 열림/닫힘
       article.showComments = !article.showComments;
 
@@ -405,7 +410,7 @@ export default {
     },
 
     async fetchComments(articleIndex) {
-      const feed = this.articles[articleIndex];
+      const feed = this.useFeedStore.feedList[articleIndex];
       try {
         // 서버로부터 댓글 목록 불러오기 (예: page=article.commentPage, size=10)
         const response = await $axios.get(`comment/${feed.id}`, {
