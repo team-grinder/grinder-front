@@ -143,7 +143,7 @@
                         variant="text"
                         @click="toggleReplies(aIndex, cIndex)"
                     ></v-btn>
-                    <span>{{ comment.replies.length }}</span>
+                    <span>{{ comment.replyCount }}</span>
                   </div>
                 </div>
 
@@ -334,8 +334,45 @@ export default {
 
     // 대댓글 토글
     toggleReplies(articleIndex, commentIndex) {
+      const feed = this.feedList[articleIndex];
       const comment = this.feedList[articleIndex].comments[commentIndex];
+
       comment.showReplies = !comment.showReplies;
+
+      console.log(comment);
+
+      if (comment.showReplies && comment.replies.length === 0) {
+        this.fetchReplies(feed?.id, comment);
+      }
+    },
+
+    // 대댓글 불러오기
+    async fetchReplies(feedId, comment) {
+      try {
+        const response = await $axios.get(`comment`, {
+          params: {
+            feedId: feedId,
+            commentId: comment.id,
+            page: comment.replyPage,
+            size: 10
+          }
+        });
+
+        const serverReplies = response.data.data.content || [];
+        comment.replies.push(...serverReplies.map(r => ({
+          id: r.id,
+          nickname: r.nickname,
+          memberImage: r.memberImageUrl || '',
+          content: r.content,
+          showReplies: false,
+          newReply: { content: '' },
+        })));
+
+        comment.hasMoreReplies = response.data.data.hasNext;
+        comment.replyPage += 1;
+      } catch (err) {
+        console.error('대댓글 불러오기 실패', err);
+      }
     },
 
     // 대댓글 등록
@@ -417,9 +454,9 @@ export default {
     async fetchComments(articleIndex) {
       const feed = this.feedList[articleIndex];
       try {
-        // 서버로부터 댓글 목록 불러오기 (예: page=article.commentPage, size=10)
-        const response = await $axios.get(`comment/${feed.id}`, {
+        const response = await $axios.get(`comment`, {
           params: {
+            feedId: feed.id,
             page: feed.commentPage,
             size: 10
           }
@@ -428,13 +465,15 @@ export default {
         const serverComments = response.data.data.content || [];
         // 기존에 로드된 댓글 뒤에 추가
         feed.comments.push(...serverComments.map(c => ({
+          id: c.id,
           nickname: c.nickname,
           memberImage: c.memberImageUrl || '',
           content: c.content,
           showReplies: false,
+          replyCount: c.replyCount,
           replies: [],
           // 대댓글 페이징 처리 시 필요
-          replyPage: 1,
+          replyPage: 0,
           hasMoreReplies: true,
           newReply: { content: '' },
         })));

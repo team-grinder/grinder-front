@@ -10,7 +10,6 @@ export const useFeedStore = defineStore("feed", {
         noContents: false, // 더 이상 불러올 데이터가 없는지 여부
     }),
     getters: {
-        getFeedList: this.feedList,
     },
     actions: {
         // 피드 목록 초기화

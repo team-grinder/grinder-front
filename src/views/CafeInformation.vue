@@ -9,12 +9,13 @@
 
     <v-divider class="cafe_info_line"></v-divider>
 
-    <v-progress-circular
-        v-if="loading"
-        class="ma-auto"
-        indeterminate
-        color="green darken-1"
-    ></v-progress-circular>
+    <div v-if="loading"
+         class="ma-auto">
+      <v-progress-circular
+          indeterminate
+          color="green darken-1"
+      ></v-progress-circular>
+    </div>
 
     <component
         v-else

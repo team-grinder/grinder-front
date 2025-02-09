@@ -70,7 +70,6 @@ export default {
 
         // 성공 시 Pinia 상태 업데이트
         if (response.status === 200) {
-          alert('로그인 성공!');
 
           await router.push('/');
         }
