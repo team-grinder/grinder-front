@@ -4,26 +4,26 @@
         class="bg-green-lighten-5 mx-auto mb-5"
         width="1200"
         variant="outlined"
-        v-for="book in books"
+        v-for="book in formattedBookings"
         :key="book.id"
     >
       <template v-slot:title>
         <span class="font-weight-black">{{ book.cafeName }}</span>
       </template>
       <template v-slot:subtitle>
-        <span>{{ book.period }}</span>
+        <span>{{ book.formattedDateTime }}</span>
       </template>
 
       <v-card-text class="bg-white pt-4">
         <p>주소 : <span>{{ book.address }}</span></p>
-        <p>인원 : <span>{{ book.headcount }}</span></p>
-        <p>결제 비용 : <span>{{ book.payment }}</span></p>
-        <p>결제 번호 : <span>{{ book.paymentNumber }}</span></p>
-        <p>이용 상태 : <span>{{ book.status }}</span></p>
+        <p>인원 : <span>{{ book.numberOfGuests }}명</span></p>
+        <p>결제 비용 : <span>{{ formatPrice(book.paymentAmount) }}원</span></p>
+        <p>결제 번호 : <span>{{ book.paymentId }}</span></p>
+        <p>예약 상태 : <span>{{ getStatusLabel(book.status) }}</span></p>
 
         <v-card-actions class="d-flex justify-end">
           <v-btn
-              v-if="book.isCancellable"
+              v-if="isCancellable(book.status)"
               color="red-lighten-1"
               variant="tonal"
               @click="confirmCancel(book)"
@@ -31,7 +31,7 @@
             예약 취소
           </v-btn>
           <v-btn
-              v-if="book.isReviewable"
+              v-if="isReviewable(book.status)"
               color="green-darken-1"
               variant="tonal"
               @click="openReviewModal(book)"
@@ -45,12 +45,10 @@
     <!-- 예약 취소 확인 모달 -->
     <v-dialog v-model="cancelDialog" max-width="500">
       <v-card>
-        <v-card-title>
-          예약 취소 확인
-        </v-card-title>
+        <v-card-title>예약 취소 확인</v-card-title>
         <v-card-text>
-          <p>{{ cancelInfo.cafeName }}에서 예약을 취소하시겠습니까?</p>
-          <p>예약 번호: {{ cancelInfo.paymentNumber }}</p>
+          <p>{{ selectedBooking?.cafeName }}에서 예약을 취소하시겠습니까?</p>
+          <p>예약 번호: {{ selectedBooking?.paymentId }}</p>
         </v-card-text>
         <v-card-actions>
           <v-btn color="red-lighten-1" @click="cancelDialog = false">취소</v-btn>
@@ -69,14 +67,13 @@
         :reviewRating="reviewRating"
         @submit="submitFeed"
     />
-
   </v-container>
 </template>
 
 <script>
 import $axios from "@/plugins/axios";
 import router from "@/router";
-import FeedWriteDialog from "@/components/cafe/FeedWriteDialog";
+import FeedWriteDialog from "@/components/cafe/FeedWriteDialog.vue";
 
 export default {
   name: "BookList",
@@ -95,62 +92,10 @@ export default {
   },
   data() {
     return {
-      books: [
-        {
-          id: 1,
-          cafeId: 1,
-          cafeName: "스타벅스",
-          period: "2025-01-15 05:00 ~ 07:00",
-          address: "서울시 강남구",
-          headcount: 2,
-          payment: 10000,
-          paymentNumber: "123456789",
-          status: "이용 중",
-          isCancellable: true,
-          isReviewable: false,
-        },
-        {
-          id: 2,
-          cafeId: 2,
-          cafeName: "스타벅스 2호",
-          period: "2025-01-15 05:00 ~ 07:00",
-          address: "서울시 강남구",
-          headcount: 2,
-          payment: 10000,
-          paymentNumber: "987654321",
-          status: "이용 완료",
-          isCancellable: false,
-          isReviewable: true,
-        },
-        {
-          id: 3,
-          cafeId: 3,
-          cafeName: "스타벅스 3호",
-          period: "2025-01-15 05:00 ~ 07:00",
-          address: "서울시 강남구",
-          headcount: 2,
-          payment: 10000,
-          paymentNumber: "123456789",
-          status: "대기 중",
-          isCancellable: true,
-          isReviewable: false,
-        },
-        {
-          id: 4,
-          cafeId: 4,
-          cafeName: "스타벅스 4호",
-          period: "2025-01-15 05:00 ~ 07:00",
-          address: "서울시 강남구",
-          headcount: 2,
-          payment: 10000,
-          paymentNumber: "123456789",
-          status: "승인 완료",
-          isCancellable: true,
-          isReviewable: false,
-        },
-      ],
+      bookings: [],
       cancelDialog: false,
       reviewDialog: false,
+      selectedBooking: null,
       cancelInfo: {},
       reviewInfo: {},
       reviewContent: "",
@@ -158,29 +103,61 @@ export default {
       reviewRating: 3,
     };
   },
+  computed: {
+    formattedBookings() {
+      console.log('원본 bookings:', this.bookings);
+      return this.bookings.map(booking => ({
+        ...booking,
+        formattedDateTime: `${booking.date} ${booking.reserveTime}`
+      }));
+    }
+  },
   methods: {
-    confirmCancel(book) {
-      this.cancelInfo = book;
+    async fetchBookings() {
+      try {
+        console.log('예약 정보 조회 시작');
+        const response = await $axios.get('/tabling/mypage/tabling');
+        console.log('API 응답:', response);
+        if (response.data.code === "200") {
+          this.bookings = response.data.data;
+        }
+      } catch (error) {
+        console.error('예약 정보 조회 실패:', error);
+      }
+    },
+    formatPrice(price) {
+      return new Intl.NumberFormat('ko-KR').format(price);
+    },
+    getStatusLabel(status) {
+      const statusMap = {
+        'PENDING': '승인 대기',
+        'CONFIRMED': '예약 확정',
+        'COMPLETED': '이용 완료',
+        'CANCEL': '예약 취소'
+      };
+      return statusMap[status] || status;
+    },
+    isCancellable(status) {
+      return ['PENDING', 'CONFIRMED'].includes(status);
+    },
+    isReviewable(status) {
+      return status === 'COMPLETED';
+    },
+    confirmCancel(booking) {
+      this.selectedBooking = booking;
       this.cancelDialog = true;
     },
-    cancelBooking() {
-      // 예약 취소 API 호출
-      const payload = {
-        id: this.cancelInfo.id,
-        nickname: this.nickname,
-      };
-      this.$axios.post(`/book/${this.cancelInfo.id}`, payload)
-          .then(() => {
-            alert("예약이 취소되었습니다.");
-            this.cancelDialog = false;
-          })
-          .catch((error) => {
-            console.error(error);
-            alert("예약 취소에 실패했습니다.");
-          });
+    async cancelBooking() {
+      try {
+        await $axios.delete(`/tabling/${this.selectedBooking.id}`);
+        await this.fetchBookings();
+        this.cancelDialog = false;
+      } catch (error) {
+        console.error('예약 취소 실패:', error);
+      }
     },
-    openReviewModal(book) {
-      this.reviewInfo = book;
+    openReviewModal(booking) {
+      this.selectedBooking = booking;
       this.reviewDialog = true;
     },
     submitFeed(payload) {
@@ -218,6 +195,9 @@ export default {
             console.error("Feed 생성 실패", error);
           });
     },
+  },
+  async created() {
+    await this.fetchBookings();
   },
 };
 </script>
