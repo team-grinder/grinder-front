@@ -101,7 +101,7 @@ export default {
       try {
         const tablingResponse = await axios.get(`/tabling/cafe/${this.$route.params.id}/tabling-info`, {params: {date: this.formatDate(this.date)}});
         const cafeInfoResponse = await axios.get(`/cafe/${this.$route.params.id}`);
-        const businessHoursResponse = await axios.get(`/admin/cafe/${this.$route.params.id}/business-hours`);
+        const businessHoursResponse = await axios.get(`/cafe/${this.$route.params.id}/business-hours`);
 
         this.availableTimes = {
           startTime: businessHoursResponse.data.startTime,
