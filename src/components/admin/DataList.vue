@@ -1,51 +1,31 @@
 <template>
   <v-container class="pa-4">
-    <!-- 검색 기능 -->
-    <Search></Search>
+    <!-- 검색 입력 -->
+    <SearchBox class="mb-10" @search="onSearch" @reset="onReset" />
 
-    <!-- 카페 목록 -->
-    <v-row justify="center">
-      <v-col cols="12" md="8">
-        <!-- 칼럼 헤더 -->
-        <v-row class="text-center font-weight-bold mb-2">
-          <v-col cols="3">카페 이름</v-col>
-          <v-col cols="3">카페 설명</v-col>
-          <v-col cols="3">카페 주소</v-col>
-          <v-col cols="3">등록일</v-col>
-        </v-row>
+    <!-- 서버 사이드 데이터 테이블 -->
+    <v-data-table-server
+        v-model:items-per-page="itemsPerPage"
+        :headers="headers"
+        :items="serverItems"
+        :items-length="totalItems"
+        :loading="loading"
+        :search="search"
+        item-value="name"
+        @update:options="loadItems"
+    >
+      <!-- 각 행을 클릭하면 수정 팝업을 띄우도록 커스텀 슬롯 사용 -->
+      <template #item="{ item }">
+        <tr @click="popupModifyCafe(item.id)" style="cursor: pointer;">
+          <td>{{ item.name }}</td>
+          <td>{{ item.description }}</td>
+          <td>{{ item.address }}</td>
+          <td>{{ item.registrationDate }}</td>
+        </tr>
+      </template>
+    </v-data-table-server>
 
-        <v-divider></v-divider>
-
-        <!-- 카페 목록 -->
-        <v-list-item
-            class="text-center py-2"
-            v-for="(cafe, index) in filteredCafes"
-            :key="index"
-            @click="popupModifyCafe(cafe.id)"
-        >
-          <v-row>
-            <v-col cols="3">{{ cafe.name }}</v-col>
-            <v-col cols="3">{{ cafe.description }}</v-col>
-            <v-col cols="3">{{ cafe.address }}</v-col>
-            <v-col cols="3">{{ cafe.registrationDate }}</v-col>
-          </v-row>
-        </v-list-item>
-      </v-col>
-    </v-row>
-
-    <!-- 페이지네이션 -->
-    <v-row justify="center" class="mt-2">
-      <v-col cols="12" md="6" class="text-center">
-        <v-pagination
-            v-model="currentPage"
-            :length="pageCount"
-            circle
-            color="primary"
-        ></v-pagination>
-      </v-col>
-    </v-row>
-
-    <!-- 팝업 다이얼로그 -->
+    <!-- 카페 수정 팝업 다이얼로그 -->
     <v-dialog v-model="dialog" max-width="600px">
       <v-card>
         <v-card-title>카페 정보 수정</v-card-title>
@@ -91,20 +71,29 @@
 </template>
 
 <script>
-import defaultImage from "@/assets/images/basic-user-img.png";
-import Search from "@/components/admin/Search";
+import SearchBox from "@/components/admin/SearchBox";
 
 export default {
   name: "AdminCafeList",
   components: {
-    Search,
+    SearchBox,
   },
   data() {
     return {
-      searchQuery: "",
-      currentPage: 1,
+      // 검색어
+      search: "",
+      // 데이터 테이블 관련
       itemsPerPage: 5,
-      defaultImage: defaultImage,
+      headers: [
+        { title: "카페 이름", key: "name", align: "start", sortable: false },
+        { title: "카페 설명", key: "description", align: "start" },
+        { title: "카페 주소", key: "address", align: "start" },
+        { title: "등록일", key: "registrationDate", align: "start" },
+      ],
+      serverItems: [],
+      totalItems: 0,
+      loading: true,
+      // 팝업 다이얼로그 관련
       dialog: false,
       selectedCafe: {
         id: null,
@@ -113,6 +102,7 @@ export default {
         address: "",
         registrationDate: "",
       },
+      // 실제 데이터 (Fake API용)
       cafes: [
         {
           id: 1,
@@ -163,40 +153,91 @@ export default {
           image: null,
         },
       ],
+      // 마지막으로 사용된 옵션을 저장 (검색 시 재사용)
+      lastOptions: null,
     };
   },
-  computed: {
-    filteredCafes() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      const end = start + this.itemsPerPage;
-      const filtered = this.cafes.filter((cafe) =>
-          cafe.name.includes(this.searchQuery)
-      );
-      return filtered.slice(start, end);
-    },
-    pageCount() {
-      return Math.ceil(
-          this.cafes.filter((cafe) => cafe.name.includes(this.searchQuery)).length /
-          this.itemsPerPage
-      );
-    },
-  },
   methods: {
+    /**
+     * 서버 API를 흉내 내어 옵션(page, itemsPerPage, sortBy 등)에 따라 cafes 배열을
+     * 필터링, 정렬, 페이징 처리 후 반환합니다.
+     */
+    loadItems(options) {
+      this.lastOptions = options;
+      this.loading = true;
+
+      const { page, itemsPerPage, sortBy } = options;
+      // 검색어(카페 이름 포함 여부)로 필터링
+      let filtered = this.cafes.filter((cafe) =>
+          cafe.name.includes(this.search)
+      );
+
+      // 정렬 옵션이 있으면 정렬 (정렬 옵션이 없다면 기본 순서 유지)
+      if (sortBy && sortBy.length > 0) {
+        const sortKey = sortBy[0].key;
+        const sortOrder = sortBy[0].order;
+        filtered.sort((a, b) => {
+          const aValue = a[sortKey];
+          const bValue = b[sortKey];
+          if (aValue < bValue) return sortOrder === "desc" ? 1 : -1;
+          if (aValue > bValue) return sortOrder === "desc" ? -1 : 1;
+          return 0;
+        });
+      }
+
+      const total = filtered.length;
+      const start = (page - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const items = filtered.slice(start, end);
+
+      // API 호출을 흉내내기 위해 500ms 딜레이 후 결과 반환
+      setTimeout(() => {
+        this.serverItems = items;
+        this.totalItems = total;
+        this.loading = false;
+      }, 500);
+    },
+    /**
+     * 검색어 변경 시 호출되어 현재 옵션의 page를 1로 초기화한 후 데이터를 재로딩합니다.
+     */
+    onSearch() {
+      if (this.lastOptions) {
+        this.loadItems({ ...this.lastOptions, page: 1 });
+      } else {
+        this.loadItems({ page: 1, itemsPerPage: this.itemsPerPage, sortBy: [] });
+      }
+    },
+    /**
+     * 테이블 행 클릭 시 해당 카페 정보를 팝업에서 수정할 수 있도록 설정합니다.
+     */
     popupModifyCafe(cafeId) {
       const cafe = this.cafes.find((cafe) => cafe.id === cafeId);
-      this.selectedCafe = { ...cafe }; // 선택된 카페 정보를 복사
-      this.dialog = true; // 팝업 열기
+      if (cafe) {
+        this.selectedCafe = { ...cafe };
+        this.dialog = true;
+      }
     },
+    /**
+     * 팝업에서 수정한 카페 정보를 저장한 후, 원본 배열과 테이블 데이터를 갱신합니다.
+     */
     saveCafe() {
-      // 수정된 카페 정보를 저장 (로직 필요)
       const index = this.cafes.findIndex(
           (cafe) => cafe.id === this.selectedCafe.id
       );
       if (index !== -1) {
-        this.cafes[index] = { ...this.selectedCafe };
+        // 원본 데이터 갱신
+        this.cafes.splice(index, 1, { ...this.selectedCafe });
       }
-      this.dialog = false; // 팝업 닫기
+      this.dialog = false;
+      // 변경된 데이터 반영을 위해 현재 옵션으로 다시 로드
+      if (this.lastOptions) {
+        this.loadItems(this.lastOptions);
+      }
     },
+  },
+  mounted() {
+    // 초기 데이터 로드 (기본 옵션: page 1, itemsPerPage 5, 정렬 없음)
+    this.loadItems({ page: 1, itemsPerPage: this.itemsPerPage, sortBy: [] });
   },
 };
 </script>

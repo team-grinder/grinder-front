@@ -92,9 +92,8 @@
                 <v-btn
                     class=""
                     color="green-darken-1"
-                    icon="mdi-thumb-up"
+                    :icon="article.isLike ? 'mdi-thumb-up' : 'mdi-thumb-up-outline'"
                     variant="text"
-                    :active="article.isLike"
                     @click="likeArticle(aIndex)"
                 ></v-btn>
                 <span>{{ article.likes }}</span>
@@ -103,7 +102,7 @@
                 <v-btn
                     class=""
                     color="green-darken-1"
-                    icon="mdi-comment-outline"
+                    :icon="article.showComments ? 'mdi-comment' : 'mdi-comment-outline'"
                     variant="text"
                     @click="toggleComments(aIndex)"
                 ></v-btn>
@@ -139,7 +138,7 @@
                     <v-btn
                         class=""
                         color="green-darken-1"
-                        icon="mdi-comment-outline"
+                        :icon="comment.showReplies ? 'mdi-comment' : 'mdi-comment-outline'"
                         variant="text"
                         @click="toggleReplies(aIndex, cIndex)"
                     ></v-btn>
