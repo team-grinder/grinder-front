@@ -12,29 +12,25 @@
         max-width="448"
         rounded="lg"
     >
-      <div class="text-subtitle-1 text-medium-emphasis">Account</div>
+      <div class="text-subtitle-1 text-medium-emphasis">이메일</div>
 
       <v-text-field
           density="compact"
           v-model="username"
-          placeholder="Email address"
+          placeholder="이메일 주소"
           prepend-inner-icon="mdi-email-outline"
           variant="outlined"
       ></v-text-field>
 
-      <div
-          class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between"
-      >
-        Password
-
-      </div>
+      <div class="text-subtitle-1 text-medium-emphasis d-flex align-center justify-space-between">
+        비밀번호</div>
 
       <v-text-field
           v-model="password"
           :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
           :type="visible ? 'text' : 'password'"
           density="compact"
-          placeholder="Enter your password"
+          placeholder="비밀번호"
           prepend-inner-icon="mdi-lock-outline"
           variant="outlined"
           @click:append-inner="visible = !visible"
@@ -47,8 +43,8 @@
         </v-card-text>
       </v-card>
 
-      <v-btn class="mb-8" color="blue" size="large" variant="tonal" block @click="handleLogin">
-        Log In
+      <v-btn class="mb-8" color="green darken-1" size="large" variant="tonal" block @click="handleLogin">
+        로그인
       </v-btn>
 
     </v-card>

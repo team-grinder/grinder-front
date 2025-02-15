@@ -4,8 +4,9 @@ import $axios from "@/plugins/axios";
 export const useAdminStore = defineStore("admin", {
     state: () => ({
         isAuthenticated: false, // 로그인 상태
-        id: null, // 사용자 ID
-        name: null, // 사용자 이름
+        id: null, // 관리자 ID
+        name: null, // 관리자 이름
+        image: null, // 관리자 이미지
     }),
     actions: {
         resetAdmin() {

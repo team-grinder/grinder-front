@@ -1,55 +1,44 @@
 <template>
-  <v-card class="pa-4 mb-4" outlined>
-    <v-card-title>검색 조건</v-card-title>
-    <v-card-text>
-      <v-row>
-        <!-- 날짜 선택 -->
-        <v-col cols="12" sm="6" md="4">
-          <v-menu
-              ref="dateMenu"
-              v-model="dateMenu"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              offset-y
-              min-width="auto"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-text-field
-                  v-model="selectedDate"
-                  label="날짜 선택"
-                  prepend-icon="mdi-calendar"
-                  readonly
-                  v-bind="attrs"
-                  v-on="on"
-                  outlined
-              ></v-text-field>
-            </template>
-            <v-date-picker
-                v-model="selectedDate"
-                @input="dateMenu = false"
-                scrollable
-            ></v-date-picker>
-          </v-menu>
-        </v-col>
-
+  <v-card class="pa-4 mb-4"
+          variant="elevated">
+    <v-card-title>검색</v-card-title>
+    <v-card-text
+      class="px-4">
+      <v-row
+          class="mb-0 justify-lg-space-between"
+          no-gutters>
         <!-- 셀렉트 박스 -->
-        <v-col cols="12" sm="6" md="4">
+        <v-col cols="2" class="pr-5">
           <v-select
               v-model="selectedOption"
               :items="options"
               label="옵션 선택"
-              outlined
+              variant="outlined"
           ></v-select>
         </v-col>
 
         <!-- 검색창 -->
-        <v-col cols="12" md="4">
+        <v-col cols="6" class="pr-5">
           <v-text-field
               v-model="searchQuery"
               label="검색어"
-              outlined
+              variant="outlined"
               clearable
           ></v-text-field>
+        </v-col>
+
+        <v-spacer></v-spacer>
+
+        <!-- 날짜 선택 -->
+        <v-col cols="3">
+          <v-date-input
+              prepend-icon=""
+              prepend-inner-icon="$calendar"
+              v-model="searchDate"
+              label="날짜 선택"
+              variant="outlined"
+              multiple="range"
+          ></v-date-input>
         </v-col>
       </v-row>
     </v-card-text>
@@ -69,7 +58,7 @@ export default {
   data() {
     return {
       // 날짜 선택 관련
-      selectedDate: null,
+      searchDate: null,
       dateMenu: false,
       // 셀렉트 박스 관련
       selectedOption: null,
