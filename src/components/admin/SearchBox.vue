@@ -35,7 +35,7 @@
         <v-col cols="2" class="pr-5">
           <v-select
               v-model="selectedOption"
-              :items="optionsDummy"
+              :items="options"
               label="구분 선택"
               variant="underlined"
               prepend-inner-icon="mdi-menu"
@@ -97,7 +97,6 @@ export default {
       dateMenu: false,
       // 셀렉트 박스 관련
       selectedOption: null,
-      optionsDummy: ["옵션1", "옵션2", "옵션3"],
       // 검색창 관련
       searchQuery: "",
     };
