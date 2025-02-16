@@ -1,14 +1,16 @@
 <template>
   <v-navigation-drawer
       :width="300"
-      elevation="8"
   >
     <v-list
         color="transparent" mandatory>
-      <v-list-item
-          class="text-h4 text-center"
-          title="관리자 페이지"
-          :subtitle=adminPageState.getSelectedMenu>
+      <v-list-item>
+        <template v-slot:title>
+          <span class="text-h4 font-weight-bold"> 관리자페이지 </span>
+        </template>
+        <template v-slot:subtitle>
+          <span class="text-h6"> {{ adminPageState.getSelectedMenu }} </span>
+        </template>
       </v-list-item>
 
       <v-list-item
@@ -26,7 +28,7 @@
           :prepend-icon="menu.icon"
           color="primary"
           variant="plain"
-          rounded="xl"
+          :active="menu.title === adminPageState.getSelectedMenu"
           @click="adminPageState.selectMenu(menu.title)"
       >
         <template v-slot:title>
