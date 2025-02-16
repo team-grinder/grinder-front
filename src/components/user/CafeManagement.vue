@@ -21,6 +21,7 @@
 
   <component
       :is="currentView"
+      :cafe-id="cafeId"
       class="mx-auto"
       style="width: 1200px">
   </component>
@@ -38,7 +39,17 @@ export default {
   data() {
     return {
       currentView: "BookManagement",
+      cafeId: null
     };
+  },
+  created() {
+    const id = this.$route.params.id;
+    if (id && !isNaN(id)) {
+      this.cafeId = Number(id);
+      console.log('CafeManagement cafeId:', this.cafeId);
+    } else {
+      console.error('Invalid cafe ID:', id);
+    }
   },
   methods: {
     handleChangeView(view) {
