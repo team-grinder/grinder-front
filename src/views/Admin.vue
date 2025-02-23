@@ -7,7 +7,7 @@
 
 <script>
 import Header from "@/components/admin/Header.vue"
-import List from "@/components/admin/DataList.vue"
+import CafeManage from "@/components/admin/CafeManage.vue"
 import { useUserStore } from "@/stores/userStore";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
 
@@ -15,13 +15,13 @@ export default {
   name: "AdminPage",
   components: {
     Header,
-    List,
+    CafeManage,
   },
   data() {
     return {
       userStore: useUserStore(),
       adminPageState: useAdminPageStateStore(),
-      currentView: "List",
+      currentView: "CafeManage",
     };
   },
   watch: {

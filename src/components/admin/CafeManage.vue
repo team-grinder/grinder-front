@@ -47,7 +47,7 @@
         <v-icon class="me-2" size="small" @click="popupModifyCafe(item.id)">
           mdi-pencil
         </v-icon>
-        <v-icon size="small">
+        <v-icon size="small" @click="popupDeleteCafe(item)">
           mdi-delete
         </v-icon>
       </template>
@@ -64,6 +64,27 @@
         </v-row>
       </template>
     </v-data-table>
+
+    <!-- 삭제 여부 팝업 -->
+    <v-dialog v-model="dialogDelete" max-width="400">
+      <v-card>
+        <v-card-title class="headline">
+          삭제 확인
+        </v-card-title>
+        <v-card-text>
+          선택한 카페를 삭제하시겠습니까?
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="red darken-1" @click="dialogDelete = false">
+            취소
+          </v-btn>
+          <v-btn color="red darken-1" @click="deleteCafe(selectedCafe.id)">
+            삭제
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- 카페 생성/수정 모달 다이얼로그 -->
     <v-dialog v-model="dialog" max-width="1000px">
@@ -90,6 +111,38 @@
                   v-model="selectedCafe.address"
                   label="카페 주소"
                   variant="underlined" />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                  v-model="findUserId"
+                  label="회원(ID) 검색"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-account-search"
+                  clearable>
+                <template v-slot:append>
+                  <v-btn
+                      color="primary"
+                      @click="findUser">
+                    검색
+                  </v-btn>
+                </template>
+              </v-text-field>
+              <v-data-table
+                  :items="managerList"
+                  @click:row="(e, { item }) => onRowClick(item)"
+                  no-data-text="검색한 회원이 존재하지 않습니다."
+                  hover
+                  expand-on-click
+                  hide-default-footer>
+              </v-data-table>
+            </v-col>
+
+            <v-col cols="12">
+              <v-text-field
+                  v-model="selectedCafe.manager.userId"
+                  readonly
+                  label="관리자 회원 아이디">
+              </v-text-field>
             </v-col>
           </v-row>
         </v-card-text>
@@ -123,6 +176,8 @@ export default {
       ],
       // 검색어
       search: "",
+      findUserId: "",
+      managerList: [],
       // 로딩 상태
       loading: false,
       pagination: {},
@@ -147,6 +202,7 @@ export default {
       serverItems: [],
       totalItems: 0,
       // 모달 다이얼로그 관련
+      dialogDelete: false,
       dialog: false,
       selectedCafe: {
         id: null,
@@ -154,6 +210,10 @@ export default {
         description: "",
         address: "",
         registrationDate: "",
+        manager: {
+          id: null,
+          userId: "",
+        }
       },
       // 실제 데이터 (Fake API용)
       cafes: [
@@ -214,6 +274,34 @@ export default {
     },
   },
   methods: {
+    onRowClick(item) {
+      this.selectedCafe.manager = item;
+    },
+    popupDeleteCafe(item) {
+      this.selectedCafe = item;
+      this.dialogDelete = true;
+    },
+    deleteCafe(id) {
+      console.log("삭제할 카페 ID:", id);
+      const index = this.cafes.findIndex((cafe) => cafe.id === id);
+      if (index !== -1) {
+        this.cafes.splice(index, 1);
+        console.log(this.cafes)
+      }
+      this.dialogDelete = false;
+
+      this.loadItems();
+    },
+    async findUser() {
+      /*const response = await $axios.get("/admin/user/search", {
+        params: {
+          userId: this.findUserId,
+        },
+      });
+      this.managerList = response.data.data;*/
+
+      this.managerList = [{id : 1, userId: "user1"}, {id : 2, userId: "user2"}];
+    },
     async loadItems(param) {
       this.loading = true;
       const page = this.currentPage;
@@ -259,7 +347,13 @@ export default {
     popupModifyCafe(cafeId) {
       const cafe = this.cafes.find((cafe) => cafe.id === cafeId);
       if (cafe) {
-        this.selectedCafe = { ...cafe };
+        this.selectedCafe = {
+          ...cafe,
+          manager: {
+            id: cafe.manager ? cafe.manager.id : '',
+            userId: cafe.manager ? cafe.manager.userId : '',
+          },
+        };
         this.dialog = true;
       }
     },
@@ -277,6 +371,10 @@ export default {
         description: "",
         address: "",
         registrationDate: new Date().toISOString().substr(0, 10),
+        manager: {
+          id: null,
+          userId: "",
+        }
       };
       this.dialog = true;
     },
