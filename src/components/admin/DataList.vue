@@ -4,22 +4,39 @@
     <SearchBox
         class="mb-10"
         :options="options"
-        @search="onSearch"/>
+        @search-data="searchData"/>
 
-    <v-row class="pa-3">
+    <v-row class="pa-3 d-flex justify-center align-center">
       <v-spacer></v-spacer>
+      <v-col cols="auto">
+        <v-select
+            v-model="itemPerPage"
+            :items="items_per_page_options"
+            label="페이지 당 아이템 수"
+            density="compact"
+            variant="outlined"
+            hide-details
+            width="200"
+            @update:modelValue="changeItemsPerPage"
+        ></v-select>
+      </v-col>
       <v-btn size="large" variant="tonal" prepend-icon="mdi-coffee" @click="popupCreateCafe">
         카페 생성
       </v-btn>
     </v-row>
 
+    <!-- 카페 리스트 -->
     <v-data-table
         :headers="headers"
+        no-data-text="데이터가 없습니다."
         :items="serverItems"
         :loading="loading"
         :total-items="totalItems"
-        :items-per-page="itemsPerPage"
+        :items-per-page="itemPerPage"
+        :items-per-page-options="items_per_page_options"
+        :server-items-length="totalItems"
         :page="currentPage"
+        hover
         hide-default-footer
         disable-sort
         item-key="id"
@@ -36,11 +53,14 @@
       </template>
 
       <template v-slot:bottom>
-        <v-row class="mt-4" justify="center">
-          <v-pagination
-              v-model="currentPage"
-              :length="pageCount"
-              @input="onPageChange" />
+        <v-row>
+          <v-col cols="12">
+            <v-pagination
+                v-model="currentPage"
+                :length="pageCount"
+                @update:modelValue="onPageChange($event)"
+            ></v-pagination>
+          </v-col>
         </v-row>
       </template>
     </v-data-table>
@@ -97,21 +117,33 @@ export default {
   data() {
     return {
       // 검색 옵션
-      options: ["옵션1", "옵션2", "옵션3"],
+      options: [
+        { value: "name", title: "카페명" },
+        { value: "address", title: "주소" },
+      ],
       // 검색어
       search: "",
       // 로딩 상태
       loading: false,
+      pagination: {},
+      page: 1,
+      pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
-      currentPage: 0,
-      itemsPerPage: 5,
+      currentPage: 1,
       headers: [
-        { title: "카페 이름", key: "name", align: 'center', sortable: false },
-        { title: "카페 설명", key: "description", align: 'center', sortable: false },
-        { title: "카페 주소", key: "address", align: 'center', sortable: false },
-        { title: "등록일", key: "registrationDate", align: 'center', sortable: false },
-        { title: "액션", key: "actions", align: 'center', sortable: false },
+        { title: "카페 이름", key: "name", align: 'center', sortable: false, class: 'vertical-mid' },
+        { title: "카페 설명", key: "description", align: 'center', sortable: false, class: 'vertical-mid' },
+        { title: "카페 주소", key: "address", align: 'center', sortable: false, class: 'vertical-mid' },
+        { title: "등록일", key: "registrationDate", align: 'center', sortable: false, class: 'vertical-mid' },
+        { title: "수정 / 삭제", key: "actions", align: 'center', sortable: false, class: 'vertical-mid' },
       ],
+      items_per_page_options: [
+        {value: 2, title: '2'},
+        {value: 10, title: '10'},
+        {value: 25, title: '25'},
+        {value: 50, title: '50'},
+      ],
+      itemPerPage: 2,
       serverItems: [],
       totalItems: 0,
       // 모달 다이얼로그 관련
@@ -178,21 +210,22 @@ export default {
   },
   computed: {
     pageCount() {
-      return Math.ceil(this.totalItems / this.itemsPerPage);
+      return Math.ceil(this.totalItems / this.itemPerPage);
     },
   },
   methods: {
-    loadItems() {
-      this.currentPage += 1;
-
+    async loadItems(param) {
       this.loading = true;
       const page = this.currentPage;
-      const itemsPerPage = this.itemsPerPage;
+      const itemsPerPage = this.itemPerPage;
+      this.search = param ? param.searchQuery : this.search;
 
       // 검색어(카페 이름 포함 여부)로 필터링
       let filtered = this.cafes.filter((cafe) =>
           cafe.name.includes(this.search)
       );
+      // axios 예시
+      // const response = await $axios.get("/admin/cafe/search", { param });
 
       const total = filtered.length;
       const start = (page - 1) * itemsPerPage;
@@ -213,7 +246,11 @@ export default {
       this.currentPage = 1;
       this.loadItems();
     },
-    onPageChange() {
+    /**
+     * 페이지 변경 시 데이터를 다시 로드합니다.
+     */
+    onPageChange(page) {
+      this.currentPage = page;
       this.loadItems();
     },
     /**
@@ -225,6 +262,10 @@ export default {
         this.selectedCafe = { ...cafe };
         this.dialog = true;
       }
+    },
+    changeItemsPerPage(value) {
+      this.itemPerPage = value;
+      this.loadItems();
     },
     /**
      * 카페 생성 팝업을 띄웁니다.
@@ -265,10 +306,21 @@ export default {
       // 데이터 변경 반영을 위해 다시 로드
       this.loadItems();
     },
+    searchData(param) {
+      console.log("검색어:", param);
+      this.currentPage = 1;
+      this.loadItems(param);
+    }
   },
-  mounted() {
+  created() {
     // 초기 데이터 로드
     this.loadItems();
   },
 };
 </script>
+
+<style scoped>
+::v-deep .v-data-table__td {
+  vertical-align: middle;
+}
+</style>

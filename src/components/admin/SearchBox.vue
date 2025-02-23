@@ -103,8 +103,7 @@ export default {
   },
   methods: {
     onSearch() {
-      // 실제 검색 로직을 이곳에 구현하세요.
-      console.log("검색 수행:", {
+      this.$emit("searchData", {
         startDate: this.startDate,
         endDate: this.endDate,
         selectedOption: this.selectedOption,
