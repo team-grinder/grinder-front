@@ -1,7 +1,7 @@
-<!-- TimeSlotsSetting.vue -->
 <template>
   <v-card class="mb-6">
     <v-card-title class="text-h6">타임슬롯 설정</v-card-title>
+
     <v-card-text>
       <v-row>
         <v-col cols="4">
@@ -10,6 +10,7 @@
               @update:model-value="fetchTimeSlots"
           ></v-date-picker>
         </v-col>
+
         <v-col cols="8">
           <v-simple-table v-if="timeSlots.length > 0">
             <template v-slot:default>
@@ -22,8 +23,8 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="slot in timeSlots" :key="slot.time">
-                <td>{{ slot.time }}</td>
+              <tr v-for="slot in timeSlots" :key="slot.reserveTime">
+                <td>{{ formatTime(slot.reserveTime) }}</td>
                 <td>
                   <v-text-field
                       v-if="isEditing"
@@ -34,7 +35,7 @@
                   ></v-text-field>
                   <span v-else>{{ slot.maxGuests }}</span>
                 </td>
-                <td>{{ slot.maxGuests - slot.availableGuests }}</td>
+                <td>{{ slot.currentGuests }}</td>
                 <td>
                   <v-chip
                       :color="slot.isAvailable ? 'success' : 'error'"
@@ -47,16 +48,14 @@
               </tbody>
             </template>
           </v-simple-table>
-          <v-alert
-              v-else
-              type="info"
-              text
-          >
+
+          <v-alert v-else type="info" text>
             선택한 날짜의 타임슬롯이 없습니다.
           </v-alert>
         </v-col>
       </v-row>
     </v-card-text>
+
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn
@@ -88,12 +87,21 @@ export default {
     }
   },
   methods: {
+    formatTime(time) {
+      if (typeof time === 'string' && time.includes(':')) {
+        return time;
+      }
+      return `${String(time).padStart(2, '0')}:00`;
+    },
     async fetchTimeSlots() {
       try {
-        const response = await axios.get(`/cafe/${this.cafeId}/tabling-info`, {
+        const response = await axios.get(`/cafe/${this.cafeId}/time-slots`, {
           params: { date: this.selectedDate }
         });
-        this.timeSlots = response.data.timeSlots || [];
+        this.timeSlots = (response.data || []).map(slot => ({
+          ...slot,
+          reserveTime: this.formatTime(slot.reserveTime)
+        }));
       } catch (error) {
         console.error('타임슬롯 조회 실패:', error);
       }
@@ -103,15 +111,13 @@ export default {
     },
     async saveTimeSlots() {
       try {
-        const timeSlotSetting = {
+        await axios.put(`/cafe-manager/cafe/${this.cafeId}/time-slots`, {
           date: this.selectedDate,
           timeSlots: this.timeSlots.map(slot => ({
-            reserveTime: slot.time,
+            reserveTime: slot.reserveTime,
             maxGuests: slot.maxGuests
           }))
-        };
-
-        await axios.put(`/admin/tabling/time-slots/${this.cafeId}`, timeSlotSetting);
+        });
         this.isEditing = false;
         await this.fetchTimeSlots();
       } catch (error) {
@@ -121,7 +127,6 @@ export default {
   },
   created() {
     this.fetchTimeSlots();
-    console.log('BusinessHoursSetting cafeId:', this.cafeId);
   }
 }
 </script>

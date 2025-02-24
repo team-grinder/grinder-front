@@ -1,29 +1,21 @@
 <template>
-  <v-container>
-    <v-row justify="center" class="mb-6">
-      <v-col cols="12" class="text-center">
-        <v-btn-toggle v-model="selectedSetting" mandatory>
-          <v-btn value="businessHours">영업시간 설정</v-btn>
-          <v-btn value="timeSlots">타임슬롯 설정</v-btn>
-        </v-btn-toggle>
-      </v-col>
-    </v-row>
-
-    <BusinessHoursSetting
-        v-if="selectedSetting === 'businessHours'"
+  <div>
+    <business-hours-setting
         :cafe-id="cafeId"
+        ref="businessHours"
     />
 
-    <TimeSlotsSetting
-        v-if="selectedSetting === 'timeSlots'"
+    <time-slots-setting
         :cafe-id="cafeId"
+        ref="timeSlots"
     />
-  </v-container>
+  </div>
 </template>
 
 <script>
-import BusinessHoursSetting from "@/components/cafe/BusinessHoursSetting.vue"
-import TimeSlotsSetting from "@/components/cafe/TimeSlotsSetting.vue"
+import BusinessHoursSetting from '../cafe/BusinessHoursSetting';
+import TimeSlotsSetting from '../cafe/TimeSlotsSetting';
+
 export default {
   name: 'ChangeCafeInfo',
   components: {
@@ -32,13 +24,8 @@ export default {
   },
   props: {
     cafeId: {
-      type: String,
+      type: Number,
       required: true
-    }
-  },
-  data() {
-    return {
-      selectedSetting: 'businessHours'
     }
   }
 }
