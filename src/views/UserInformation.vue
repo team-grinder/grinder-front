@@ -25,7 +25,6 @@
 
 <script>
 import router from "@/router";
-import $axios from "@/plugins/axios";
 import { useFeedStore } from "@/stores/feedStore";
 import { useUserStore } from "@/stores/userStore";
 import UserInfoBanner from "@/components/user/UserInfoBanner.vue";
@@ -71,21 +70,15 @@ export default {
     tier() {
       return this.userStore.tier;
     },
+    // eslint-disable-next-line vue/no-dupe-keys
+    isCafeManager() {
+      return this.userStore.tier === 'CAFE_MANAGER';
+    },
   },
   methods: {
     handleChangeView(view) {
       this.currentView = view;
     },
-
-    async getIsCafeManager() {
-      try {
-        const response = await $axios.get(`/cafe/${this.userInfo.id}/manager`);
-        console.log(response.data);
-      } catch (err) {
-        this.error = '카페 관리자 여부를 불러올 수 없습니다.';
-      }
-    },
-
     async getArticles() {
       await useFeedStore().getCafeFeedList();
     },
