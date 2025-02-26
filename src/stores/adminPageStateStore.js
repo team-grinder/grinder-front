@@ -6,36 +6,42 @@ export const useAdminPageStateStore = defineStore("adminPageState", {
         menus: [
             {
                 sequence: 1,
-                title: "카페관리",
+                title: "카페 관리",
                 component: "CafeManage",
                 icon: "mdi-coffee",
             },
             {
                 sequence: 2,
-                title: "회원관리",
+                title: "회원 관리",
                 component: "MemberManage",
                 icon: "mdi-account",
             },
             {
                 sequence: 3,
-                title: "게시글관리",
+                title: "시스템 관리자 관리",
+                component: "SystemAdminManage",
+                icon: "mdi-security",
+            },
+            {
+                sequence: 4,
+                title: "게시글 관리",
                 component: "feedManage",
                 icon: "mdi-message",
             },
             {
-                sequence: 4,
-                title: "댓글관리",
+                sequence: 5,
+                title: "댓글 관리",
                 component: "commentManage",
                 icon: "mdi-comment",
             },
             {
-                sequence: 5,
-                title: "신고관리",
+                sequence: 6,
+                title: "신고 관리",
                 component: "reportManage",
                 icon: "mdi-alert",
             },
             {
-                sequence: 6,
+                sequence: 7,
                 title: "통계",
                 component: "statistics",
                 icon: "mdi-chart-bar",
@@ -44,7 +50,7 @@ export const useAdminPageStateStore = defineStore("adminPageState", {
         // 선택된 메뉴
         selectedMenu: {
             sequence: 1,
-            title: "카페관리",
+            title: "카페 관리",
             component: "CafeManage",
             icon: "mdi-coffee",
         },

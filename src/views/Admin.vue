@@ -8,7 +8,8 @@
 <script>
 import Header from "@/components/admin/Header.vue"
 import CafeManage from "@/components/admin/CafeManage.vue"
-import MemberManage from "@/components/admin/MemberManage.vue";
+import MemberManage from "@/components/admin/MemberManage.vue"
+import SystemAdminManage from "@/components/admin/SystemAdminManage.vue";
 import { useUserStore } from "@/stores/userStore";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
 
@@ -18,6 +19,7 @@ export default {
     Header,
     CafeManage,
     MemberManage,
+    SystemAdminManage,
   },
   data() {
     return {
