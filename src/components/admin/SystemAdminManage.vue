@@ -136,6 +136,7 @@
 
 <script>
 import SearchBox from "@/components/admin/SearchBox";
+import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
 
 export default {
   name: "SystemAdminManage",
@@ -145,10 +146,9 @@ export default {
   data() {
     return {
       // 검색 옵션
-      options: [
-        { value: "email", title: "이메일" },
-        { value: "nickname", title: "닉네임" },
-      ],
+      options: useAdminPageStateStore().getOptions("systemAdmin"),
+      headers: useAdminPageStateStore().getHeaders("systemAdmin"),
+      items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
       managerList: [],
@@ -159,18 +159,6 @@ export default {
       pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
       currentPage: 1,
-      headers: [
-        { title: "관리자 이메일", key: "email", align: 'center', sortable: false, class: 'vertical-mid' },
-        { title: "관리자 닉네임", key: "nickname", align: 'center', sortable: false, class: 'vertical-mid' },
-        { title: "생성일", key: "createDate", align: 'center', sortable: false, class: 'vertical-mid' },
-        { title: "수정 / 삭제", key: "actions", align: 'center', sortable: false, class: 'vertical-mid' },
-      ],
-      items_per_page_options: [
-        {value: 2, title: '2'},
-        {value: 10, title: '10'},
-        {value: 25, title: '25'},
-        {value: 50, title: '50'},
-      ],
       itemPerPage: 2,
       serverItems: [],
       totalItems: 0,
@@ -205,10 +193,10 @@ export default {
       this.dialogDelete = true;
     },
     deleteSystemAdmin(id) {
-      const index = this.cafes.findIndex((cafe) => cafe.id === id);
+      const index = this.admins.findIndex((admin) => admin.id === id);
       if (index !== -1) {
-        this.cafes.splice(index, 1);
-        console.log(this.cafes)
+        this.admins.splice(index, 1);
+        console.log(this.admins)
       }
       this.dialogDelete = false;
 
@@ -290,7 +278,7 @@ export default {
             (admin) => admin.id === this.selectedSystemAdmin.id
         );
         if (index !== -1) {
-          this.cafes.splice(index, 1, { ...this.selectedSystemAdmin });
+          this.admins.splice(index, 1, { ...this.selectedSystemAdmin });
         }
       } else {
         // 생성: 새로운 카페 추가 (새로운 id 할당)
@@ -298,8 +286,8 @@ export default {
             this.admins.length > 0
                 ? Math.max(...this.admins.map((admin) => admin.id)) + 1
                 : 1;
-        const newCafe = { ...this.selectedSystemAdmin, id: newId };
-        this.cafes.push(newCafe);
+        const newAdmin = { ...this.selectedSystemAdmin, id: newId };
+        this.admins.push(newAdmin);
       }
       this.dialog = false;
       // 데이터 변경 반영을 위해 다시 로드

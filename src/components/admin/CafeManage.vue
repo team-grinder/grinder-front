@@ -161,6 +161,7 @@
 
 <script>
 import SearchBox from "@/components/admin/SearchBox";
+import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
 
 export default {
   name: "CafeManage",
@@ -170,10 +171,9 @@ export default {
   data() {
     return {
       // 검색 옵션
-      options: [
-        { value: "name", title: "카페명" },
-        { value: "address", title: "주소" },
-      ],
+      options: useAdminPageStateStore().getOptions("cafe"),
+      headers: useAdminPageStateStore().getHeaders("cafe"),
+      items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
       findUserId: "",
@@ -185,19 +185,6 @@ export default {
       pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
       currentPage: 1,
-      headers: [
-        { title: "카페 이름", key: "name", align: 'center', sortable: false, class: 'vertical-mid' },
-        { title: "카페 설명", key: "description", align: 'center', sortable: false, class: 'vertical-mid' },
-        { title: "카페 주소", key: "address", align: 'center', sortable: false, class: 'vertical-mid' },
-        { title: "등록일", key: "registrationDate", align: 'center', sortable: false, class: 'vertical-mid' },
-        { title: "수정 / 삭제", key: "actions", align: 'center', sortable: false, class: 'vertical-mid' },
-      ],
-      items_per_page_options: [
-        {value: 2, title: '2'},
-        {value: 10, title: '10'},
-        {value: 25, title: '25'},
-        {value: 50, title: '50'},
-      ],
       itemPerPage: 2,
       serverItems: [],
       totalItems: 0,
@@ -217,54 +204,12 @@ export default {
       },
       // 실제 데이터 (Fake API용)
       cafes: [
-        {
-          id: 1,
-          name: "카페1",
-          description: "맛있는 커피와 디저트",
-          address: "서울시 강남구",
-          registrationDate: "2024-03-25",
-          image: null,
-        },
-        {
-          id: 2,
-          name: "카페2",
-          description: "조용하고 아늑한 분위기",
-          address: "서울시 강북구",
-          registrationDate: "2024-03-25",
-          image: null,
-        },
-        {
-          id: 3,
-          name: "카페3",
-          description: "트렌디한 인테리어와 음악",
-          address: "서울시 강동구",
-          registrationDate: "2024-03-25",
-          image: null,
-        },
-        {
-          id: 4,
-          name: "카페4",
-          description: "도심 속 작은 정원",
-          address: "서울시 강서구",
-          registrationDate: "2024-03-25",
-          image: null,
-        },
-        {
-          id: 5,
-          name: "카페5",
-          description: "24시간 열려있는 카페",
-          address: "서울시 강남구",
-          registrationDate: "2024-03-25",
-          image: null,
-        },
-        {
-          id: 6,
-          name: "카페6",
-          description: "넓은 공간과 다양한 메뉴",
-          address: "서울시 강북구",
-          registrationDate: "2024-03-25",
-          image: null,
-        },
+        { id: 1,  name: "카페1",  description: "맛있는 커피와 디저트",  address: "서울시 강남구",  registrationDate: "2024-03-25",  image: null },
+        { id: 2,  name: "카페2",  description: "조용하고 아늑한 분위기",  address: "서울시 강북구",  registrationDate: "2024-03-25",  image: null },
+        { id: 3,  name: "카페3",  description: "트렌디한 인테리어와 음악",  address: "서울시 강동구",  registrationDate: "2024-03-25",  image: null },
+        { id: 4,  name: "카페4",  description: "도심 속 작은 정원",  address: "서울시 강서구",  registrationDate: "2024-03-25",  image: null },
+        { id: 5,  name: "카페5",  description: "24시간 열려있는 카페",  address: "서울시 강남구",  registrationDate: "2024-03-25",  image: null },
+        { id: 6,  name: "카페6",  description: "넓은 공간과 다양한 메뉴",  address: "서울시 강북구",  registrationDate: "2024-03-25",  image: null },
       ],
     };
   },
