@@ -16,7 +16,7 @@
 
       <v-text-field
           density="compact"
-          v-model="username"
+          v-model="email"
           placeholder="이메일 주소"
           prepend-inner-icon="mdi-email-outline"
           variant="outlined"
@@ -60,7 +60,7 @@ export default {
   data() {
     return {
       valid: false,
-      username: '',
+      email: '',
       password: '',
       visible: false,
     };
@@ -69,16 +69,15 @@ export default {
     async handleLogin() {
       try {
         // 로그인 요청
-        const response = await $axios.post('/admin/login', {
-          username: this.username,
+        const response = await $axios.post('/login/admin', {
+          email: this.email,
           password: this.password,
         });
-        console.log(response);
 
         // 성공 시 Pinia 상태 업데이트
         if (response.status === 200) {
 
-          await router.push('/admin');
+          await router.push({ name : "Admin" });
         }
       } catch (error) {
         console.log(error);

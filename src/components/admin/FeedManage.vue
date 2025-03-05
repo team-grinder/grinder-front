@@ -20,12 +20,8 @@
             @update:modelValue="changeItemsPerPage"
         ></v-select>
       </v-col>
-      <v-btn size="large" variant="tonal" prepend-icon="mdi-coffee" @click="popupCreateCafe">
-        카페 생성
-      </v-btn>
     </v-row>
 
-    <!-- 카페 리스트 -->
     <v-data-table
         :headers="headers"
         no-data-text="데이터가 없습니다."
@@ -44,10 +40,10 @@
 
       <!-- eslint-disable-next-line vue/valid-v-slot -->
       <template v-slot:item.actions="{ item }">
-        <v-icon class="me-2" size="small" @click="popupModifyCafe(item.id)">
+        <v-icon class="me-2" size="small" @click="popupModify(item.id)">
           mdi-pencil
         </v-icon>
-        <v-icon size="small" @click="popupDeleteCafe(item)">
+        <v-icon size="small" @click="popupDelete(item)">
           mdi-delete
         </v-icon>
       </template>
@@ -72,82 +68,56 @@
           삭제 확인
         </v-card-title>
         <v-card-text>
-          선택한 카페를 삭제하시겠습니까?
+          선택한 피드를 삭제하시겠습니까?
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="red darken-1" @click="dialogDelete = false">
             취소
           </v-btn>
-          <v-btn color="red darken-1" @click="deleteCafe(selectedCafe.id)">
+          <v-btn color="red darken-1" @click="deleteItem(selectedItem.id)">
             삭제
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <!-- 카페 생성/수정 모달 다이얼로그 -->
+    <!-- 생성/수정 모달 다이얼로그 -->
     <v-dialog v-model="dialog" max-width="1000px">
       <v-card>
         <v-card-title>
-          {{ selectedCafe.id ? '카페 정보 수정' : '카페 생성' }}
+          {{ selectedItem.id ? '피드 정보 수정' : '피드 생성' }}
         </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedCafe.name"
-                  label="카페 이름"
+                  v-model="selectedItem.title"
+                  label="피드 제목"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedCafe.description"
-                  label="카페 설명"
+                  v-model="selectedItem.content"
+                  label="피드 내용"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedCafe.address"
-                  label="카페 주소"
+                  v-model="selectedItem.imageList"
+                  label="이미지 목록"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field
-                  v-model="findUserId"
-                  label="회원(ID) 검색"
-                  variant="outlined"
-                  prepend-inner-icon="mdi-account-search"
-                  clearable>
-                <template v-slot:append>
-                  <v-btn
-                      color="primary"
-                      @click="findUser">
-                    검색
-                  </v-btn>
-                </template>
-              </v-text-field>
-              <v-data-table
-                  :items="managerList"
-                  @click:row="(e, { item }) => onRowClick(item)"
-                  no-data-text="검색한 회원이 존재하지 않습니다."
-                  hover
-                  expand-on-click
-                  hide-default-footer>
-              </v-data-table>
-            </v-col>
-
-            <v-col cols="12">
-              <v-text-field
-                  v-model="selectedCafe.manager.userId"
-                  readonly
-                  label="관리자 회원 아이디">
-              </v-text-field>
+                  v-model="selectedItem.blind"
+                  label="블라인드 여부"
+                  variant="underlined" />
             </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions class="pa-6">
-          <v-btn color="primary" size="large" variant="tonal" @click="saveCafe">
+          <v-btn color="primary" size="large" variant="tonal" @click="saveItem">
             저장
           </v-btn>
           <v-btn color="red-lighten-4" size="large" variant="tonal" @click="dialog = false">
@@ -164,19 +134,19 @@ import SearchBox from "@/components/admin/SearchBox";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
 
 export default {
-  name: "CafeManage",
+  name: "FeedManage",
   components: {
     SearchBox,
   },
   data() {
     return {
       // 검색 옵션
-      options: useAdminPageStateStore().getOptions("cafe"),
-      headers: useAdminPageStateStore().getHeaders("cafe"),
+      options: useAdminPageStateStore().getOptions("Feed"),
+      headers: useAdminPageStateStore().getHeaders("Feed"),
       items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
-      findUserId: "",
+      findCafeId: "",
       managerList: [],
       // 로딩 상태
       loading: false,
@@ -191,25 +161,94 @@ export default {
       // 모달 다이얼로그 관련
       dialogDelete: false,
       dialog: false,
-      selectedCafe: {
+      selectedItem: {
         id: null,
-        name: "",
-        description: "",
-        address: "",
-        registrationDate: "",
-        manager: {
-          id: null,
-          userId: "",
-        }
+        title: "",
+        content: "",
+        registrationDate: new Date().toISOString().substr(0, 10),
       },
       // 실제 데이터 (Fake API용)
-      cafes: [
-        { id: 1,  name: "카페1",  description: "맛있는 커피와 디저트",  address: "서울시 강남구",  registrationDate: "2024-03-25",  image: null },
-        { id: 2,  name: "카페2",  description: "조용하고 아늑한 분위기",  address: "서울시 강북구",  registrationDate: "2024-03-25",  image: null },
-        { id: 3,  name: "카페3",  description: "트렌디한 인테리어와 음악",  address: "서울시 강동구",  registrationDate: "2024-03-25",  image: null },
-        { id: 4,  name: "카페4",  description: "도심 속 작은 정원",  address: "서울시 강서구",  registrationDate: "2024-03-25",  image: null },
-        { id: 5,  name: "카페5",  description: "24시간 열려있는 카페",  address: "서울시 강남구",  registrationDate: "2024-03-25",  image: null },
-        { id: 6,  name: "카페6",  description: "넓은 공간과 다양한 메뉴",  address: "서울시 강북구",  registrationDate: "2024-03-25",  image: null },
+      dummies: [
+        {
+          id: 1,
+          title: "피드1",
+          content: "피드1 내용",
+          registrationDate: "2021-09-01",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 2,
+          title: "피드2",
+          content: "피드2 내용",
+          registrationDate: "2021-09-02",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 3,
+          title: "피드3",
+          content: "피드3 내용",
+          registrationDate: "2021-09-03",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 4,
+          title: "피드4",
+          content: "피드4 내용",
+          registrationDate: "2021-09-04",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 5,
+          title: "피드5",
+          content: "피드5 내용",
+          registrationDate: "2021-09-05",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 6,
+          title: "피드6",
+          content: "피드6 내용",
+          registrationDate: "2021-09-06",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 7,
+          title: "피드7",
+          content: "피드7 내용",
+          registrationDate: "2021-09-07",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 8,
+          title: "피드8",
+          content: "피드8 내용",
+          registrationDate: "2021-09-08",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 9,
+          title: "피드9",
+          content: "피드9 내용",
+          registrationDate: "2021-09-09",
+          imageList: [],
+          blind: false,
+        },
+        {
+          id: 10,
+          title: "피드10",
+          content: "피드10 내용",
+          registrationDate: "2021-09-10",
+          imageList: [],
+          blind: false,
+        },
       ],
     };
   },
@@ -219,33 +258,18 @@ export default {
     },
   },
   methods: {
-    onRowClick(item) {
-      this.selectedCafe.manager = item;
-    },
-    popupDeleteCafe(item) {
-      this.selectedCafe = item;
+    popupDelete(item) {
+      this.selectedItem = item;
       this.dialogDelete = true;
     },
-    deleteCafe(id) {
-      console.log("삭제할 카페 ID:", id);
-      const index = this.cafes.findIndex((cafe) => cafe.id === id);
+    deleteItem(id) {
+      const index = this.dummies.findIndex((item) => item.id === id);
       if (index !== -1) {
-        this.cafes.splice(index, 1);
-        console.log(this.cafes)
+        this.dummies.splice(index, 1);
       }
       this.dialogDelete = false;
 
       this.loadItems();
-    },
-    async findUser() {
-      /*const response = await $axios.get("/admin/user/search", {
-        params: {
-          userId: this.findUserId,
-        },
-      });
-      this.managerList = response.data.data;*/
-
-      this.managerList = [{id : 1, userId: "user1"}, {id : 2, userId: "user2"}];
     },
     async loadItems(param) {
       this.loading = true;
@@ -253,9 +277,9 @@ export default {
       const itemsPerPage = this.itemPerPage;
       this.search = param ? param.searchQuery : this.search;
 
-      // 검색어(카페 이름 포함 여부)로 필터링
-      let filtered = this.cafes.filter((cafe) =>
-          cafe.name.includes(this.search)
+      // 검색어로 필터링
+      let filtered = this.dummies.filter((item) =>
+          item.id.includes(this.search)
       );
       // axios 예시
       // const response = await $axios.get("/admin/cafe/search", { param });
@@ -289,15 +313,11 @@ export default {
     /**
      * 테이블 행 클릭 시 해당 카페 정보를 모달에서 수정할 수 있도록 설정합니다.
      */
-    popupModifyCafe(cafeId) {
-      const cafe = this.cafes.find((cafe) => cafe.id === cafeId);
-      if (cafe) {
-        this.selectedCafe = {
-          ...cafe,
-          manager: {
-            id: cafe.manager ? cafe.manager.id : '',
-            userId: cafe.manager ? cafe.manager.userId : '',
-          },
+    popupModify(itemId) {
+      const item = this.dummies.find((item) => item.id === itemId);
+      if (item) {
+        this.selectedItem = {
+          ...item,
         };
         this.dialog = true;
       }
@@ -307,43 +327,26 @@ export default {
       this.loadItems();
     },
     /**
-     * 카페 생성 팝업을 띄웁니다.
-     */
-    popupCreateCafe() {
-      this.selectedCafe = {
-        id: null,
-        name: "",
-        description: "",
-        address: "",
-        registrationDate: new Date().toISOString().substr(0, 10),
-        manager: {
-          id: null,
-          userId: "",
-        }
-      };
-      this.dialog = true;
-    },
-    /**
      * 모달에서 수정 혹은 생성한 카페 정보를 저장합니다.
      * 수정 시 기존 데이터를 업데이트하고, 생성 시 새로운 아이템을 추가합니다.
      */
-    saveCafe() {
-      if (this.selectedCafe.id) {
+    saveItem() {
+      if (this.selectedItem.id) {
         // 수정: 기존 데이터 갱신
-        const index = this.cafes.findIndex(
-            (cafe) => cafe.id === this.selectedCafe.id
+        const index = this.dummies.findIndex(
+            (item) => item.id === this.selectedItem.id
         );
         if (index !== -1) {
-          this.cafes.splice(index, 1, { ...this.selectedCafe });
+          this.dummies.splice(index, 1, { ...this.selectedItem });
         }
       } else {
         // 생성: 새로운 카페 추가 (새로운 id 할당)
         const newId =
-            this.cafes.length > 0
-                ? Math.max(...this.cafes.map((cafe) => cafe.id)) + 1
+            this.dummies.length > 0
+                ? Math.max(...this.dummies.map((item) => item.id)) + 1
                 : 1;
-        const newCafe = { ...this.selectedCafe, id: newId };
-        this.cafes.push(newCafe);
+        const newItem = { ...this.selectedItem, id: newId };
+        this.dummies.push(newItem);
       }
       this.dialog = false;
       // 데이터 변경 반영을 위해 다시 로드

@@ -188,6 +188,7 @@
 
 <script>
 import SearchBox from "@/components/admin/SearchBox";
+import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
 
 export default {
   name: "MemberManage",
@@ -197,15 +198,9 @@ export default {
   data() {
     return {
       // 검색 옵션
-      options: [
-        { value: "email", title: "이메일" },
-        { value: "phoneNumber", title: "전화번호" },
-        { value: "nickname", title: "닉네임" },
-        { value: "loginType", title: "로그인 방식" },
-        { value: "TierType", title: "회원 등급" },
-        { value: "CafeAdmin", title: "카페 관리자 여부" },
-        { value: "isDeleted", title: "탈퇴 여부" },
-      ],
+      options: useAdminPageStateStore().getOptions("member"),
+      headers: useAdminPageStateStore().getHeaders("member"),
+      items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
       findCafeId: "",
@@ -217,23 +212,6 @@ export default {
       pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
       currentPage: 1,
-      headers: [
-        { key: "email", title: "이메일", align: 'center', sortable: false },
-        { key: "phoneNumber", title: "전화번호", align: 'center', sortable: false },
-        { key: "nickname", title: "닉네임", align: 'center', sortable: false },
-        { key: "loginType", title: "로그인 방식", align: 'center', sortable: false },
-        { key: "TierType", title: "회원 등급", align: 'center', sortable: false },
-        { key: "cafeAdmin.cafeName", title: "카페 관리자 여부", align: 'center', sortable: false },
-        { key: "isDeleted", title: "탈퇴 여부", align: 'center', sortable: false },
-        { key: "registrationDate", title: "가입일", align: 'center', sortable: false },
-        { key: "actions", title: "수정/ 삭제", align: 'center', sortable: false }
-      ],
-      items_per_page_options: [
-        {value: 2, title: '2'},
-        {value: 10, title: '10'},
-        {value: 25, title: '25'},
-        {value: 50, title: '50'},
-      ],
       itemPerPage: 2,
       serverItems: [],
       totalItems: 0,
@@ -392,7 +370,7 @@ export default {
           ...member,
           cafeAdmin: {
             id: member.cafeAdmin ? member.cafeAdmin.id : '',
-            userId: member.cafeAdmin ? member.cafeAdmin.cafeName : '',
+            cafeName: member.cafeAdmin ? member.cafeAdmin.cafeName : '',
           },
         };
         this.dialog = true;

@@ -6,11 +6,15 @@
 </template>
 
 <script>
-import Header from "@/components/admin/Header.vue"
-import CafeManage from "@/components/admin/CafeManage.vue"
-import MemberManage from "@/components/admin/MemberManage.vue";
+import router from "@/router";
 import { useUserStore } from "@/stores/userStore";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
+import Header from "@/components/admin/Header.vue"
+import CafeManage from "@/components/admin/CafeManage.vue"
+import MemberManage from "@/components/admin/MemberManage.vue"
+import SystemAdminManage from "@/components/admin/SystemAdminManage.vue";
+import FeedManage from "@/components/admin/FeedManage.vue";
+import CommentManage from "@/components/admin/CommentManage.vue";
 
 export default {
   name: "AdminPage",
@@ -18,6 +22,9 @@ export default {
     Header,
     CafeManage,
     MemberManage,
+    SystemAdminManage,
+    FeedManage,
+    CommentManage,
   },
   data() {
     return {
@@ -32,6 +39,14 @@ export default {
       this.currentView = newVal.component;
     },
   },
+
+  async created() {
+    await useUserStore().resetAndCheckSession();
+
+    if (!useUserStore().isAuthenticated) {
+      await router.push({ name: "AdminLogin" });
+    }
+  }
 }
 
 </script>
