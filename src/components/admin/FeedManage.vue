@@ -141,8 +141,8 @@ export default {
   data() {
     return {
       // 검색 옵션
-      options: useAdminPageStateStore().getOptions("Feed"),
-      headers: useAdminPageStateStore().getHeaders("Feed"),
+      options: useAdminPageStateStore().getOptions("feed"),
+      headers: useAdminPageStateStore().getHeaders("feed"),
       items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
@@ -169,86 +169,16 @@ export default {
       },
       // 실제 데이터 (Fake API용)
       dummies: [
-        {
-          id: 1,
-          title: "피드1",
-          content: "피드1 내용",
-          registrationDate: "2021-09-01",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 2,
-          title: "피드2",
-          content: "피드2 내용",
-          registrationDate: "2021-09-02",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 3,
-          title: "피드3",
-          content: "피드3 내용",
-          registrationDate: "2021-09-03",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 4,
-          title: "피드4",
-          content: "피드4 내용",
-          registrationDate: "2021-09-04",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 5,
-          title: "피드5",
-          content: "피드5 내용",
-          registrationDate: "2021-09-05",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 6,
-          title: "피드6",
-          content: "피드6 내용",
-          registrationDate: "2021-09-06",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 7,
-          title: "피드7",
-          content: "피드7 내용",
-          registrationDate: "2021-09-07",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 8,
-          title: "피드8",
-          content: "피드8 내용",
-          registrationDate: "2021-09-08",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 9,
-          title: "피드9",
-          content: "피드9 내용",
-          registrationDate: "2021-09-09",
-          imageList: [],
-          blind: false,
-        },
-        {
-          id: 10,
-          title: "피드10",
-          content: "피드10 내용",
-          registrationDate: "2021-09-10",
-          imageList: [],
-          blind: false,
-        },
+        { id: 1, title: "피드1", content: "피드1 내용", registrationDate: "2021-09-01", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 2, title: "피드2", content: "피드2 내용", registrationDate: "2021-09-02", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 3, title: "피드3", content: "피드3 내용", registrationDate: "2021-09-03", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 4, title: "피드4", content: "피드4 내용", registrationDate: "2021-09-04", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 5, title: "피드5", content: "피드5 내용", registrationDate: "2021-09-05", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 6, title: "피드6", content: "피드6 내용", registrationDate: "2021-09-06", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 7, title: "피드7", content: "피드7 내용", registrationDate: "2021-09-07", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 8, title: "피드8", content: "피드8 내용", registrationDate: "2021-09-08", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 9, title: "피드9", content: "피드9 내용", registrationDate: "2021-09-09", member: {nickname: "admin"}, imageList: [], blind: false },
+        { id: 10, title: "피드10", content: "피드10 내용", registrationDate: "2021-09-10", member: {nickname: "admin"}, imageList: [], blind: false },
       ],
     };
   },
@@ -279,7 +209,7 @@ export default {
 
       // 검색어로 필터링
       let filtered = this.dummies.filter((item) =>
-          item.id.includes(this.search)
+          item.title.includes(this.search)
       );
       // axios 예시
       // const response = await $axios.get("/admin/cafe/search", { param });
@@ -288,6 +218,8 @@ export default {
       const start = (page - 1) * itemsPerPage;
       const end = start + itemsPerPage;
       const items = filtered.slice(start, end);
+
+      console.log(items)
 
       // API 호출을 흉내내기 위해 500ms 딜레이 후 결과 반환
       setTimeout(() => {
