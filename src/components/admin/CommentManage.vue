@@ -135,8 +135,8 @@ export default {
   data() {
     return {
       // 검색 옵션
-      options: useAdminPageStateStore().getOptions("Comment"),
-      headers: useAdminPageStateStore().getHeaders("Comment"),
+      options: useAdminPageStateStore().getOptions("comment"),
+      headers: useAdminPageStateStore().getHeaders("comment"),
       items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
@@ -155,68 +155,20 @@ export default {
       // 모달 다이얼로그 관련
       dialogDelete: false,
       dialog: false,
-      selectedItem: {
-        id: "",
-        content: "",
-        blind: "",
-      },
+      selectedItem: { id: "", content: "", blind: "" },
       // 실제 데이터 (Fake API용)
       dummies: [
-        {
-          id: 1,
-          content: "댓글 내용1",
-          blind: false,
-        },
-        {
-          id: 2,
-          content: "댓글 내용2",
-          blind: false,
-        },
-        {
-          id: 3,
-          content: "댓글 내용3",
-          blind: false,
-        },
-        {
-          id: 4,
-          content: "댓글 내용4",
-          blind: false,
-        },
-        {
-          id: 5,
-          content: "댓글 내용5",
-          blind: false,
-        },
-        {
-          id: 6,
-          content: "댓글 내용6",
-          blind: false,
-        },
-        {
-          id: 7,
-          content: "댓글 내용7",
-          blind: false,
-        },
-        {
-          id: 8,
-          content: "댓글 내용8",
-          blind: false,
-        },
-        {
-          id: 9,
-          content: "댓글 내용9",
-          blind: false,
-        },
-        {
-          id: 10,
-          content: "댓글 내용10",
-          blind: false,
-        },
-        {
-          id: 11,
-          content: "댓글 내용11",
-          blind: false,
-        },
+          { id: 1, content: "댓글 내용1", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 2, content: "댓글 내용2", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 3, content: "댓글 내용3", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 4, content: "댓글 내용4", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 5, content: "댓글 내용5", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 6, content: "댓글 내용6", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 7, content: "댓글 내용7", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 8, content: "댓글 내용8", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 9, content: "댓글 내용9", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 10, content: "댓글 내용10", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
+        , { id: 11, content: "댓글 내용11", registrationDate: "2024-01-01", member: { nickname: "amdin" }, blind: false }
       ],
     };
   },
@@ -247,7 +199,7 @@ export default {
 
       // 검색어로 필터링
       let filtered = this.dummies.filter((item) =>
-          item.id.includes(this.search)
+          item.content.includes(this.search)
       );
       // axios 예시
       // const response = await $axios.get("/admin/cafe/search", { param });
