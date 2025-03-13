@@ -1,25 +1,19 @@
 <template>
   <article class="cafe_info_tab">
-    <div id="show_article_button" class="tab_box"
-         @click="changeView('ArticleList')">
+    <div id="show_article_button" class="tab_box" @click="changeView('ArticleList')">
       <span>내 리뷰</span>
     </div>
-    <div id="show_book_button" class="tab_box"
-         @click="changeView('BookList')">
+    <div id="show_book_button" class="tab_box" @click="changeView('BookList')">
       <span>예약 정보</span>
     </div>
     <v-spacer></v-spacer>
-    <div
-        v-if="isCafeManager"
-        id="show_cafe_management_button" class="tab_box"
-        @click="changeView('CafeManagement')">
+    <div v-if="isCafeManager" id="show_cafe_management_button" class="tab_box" @click="goToCafeManagerList">
       <span>카페 관리</span>
     </div>
   </article>
 </template>
 
 <script>
-
 export default {
   name: "UserInfoTab",
   props: {
@@ -32,6 +26,9 @@ export default {
     changeView(viewName) {
       this.$emit("change-view", viewName);
     },
+    goToCafeManagerList() {
+      this.$router.push({ name: 'CafeManagerList' });
+    }
   },
 }
 </script>

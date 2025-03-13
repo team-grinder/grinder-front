@@ -72,7 +72,7 @@ export default {
     },
     // eslint-disable-next-line vue/no-dupe-keys
     isCafeManager() {
-      return this.userStore.tier === 'CAFE_MANAGER';
+      return this.userStore.tier === 'CAFE_MANAGER' || this.userStore.tier === 'ADMIN';
     },
   },
   methods: {

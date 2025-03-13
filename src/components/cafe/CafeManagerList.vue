@@ -16,21 +16,24 @@
           관리 중인 카페가 없습니다.
         </v-alert>
       </v-card-text>
-
-      <v-list v-else lines="two">
-        <v-list-item
-            v-for="cafe in cafeList"
-            :key="cafe.id"
-            :title="cafe.name"
-            :subtitle="cafe.address"
-        >
+      <v-list v-else>
+        <v-list-item v-for="cafe in cafeList" :key="cafe.id" :title="cafe.name" :subtitle="cafe.address">
+          <template v-slot:prepend>
+            <v-avatar size="64" class="me-4">
+              <v-img :src="cafe.imageUrl || defaultCafeImage" alt="카페 이미지"></v-img>
+            </v-avatar>
+          </template>
           <template v-slot:append>
-            <v-btn
-                color="primary"
-                @click="manageCafe(cafe.id)"
-            >
-              관리
-            </v-btn>
+            <div class="d-flex flex-column gap-2">
+              <v-btn color="primary" @click="manageCafeReservations(cafe.id)" size="small">
+                <v-icon left>mdi-calendar-check</v-icon>
+                예약 관리
+              </v-btn>
+              <v-btn color="pink" @click="manageCafeInfo(cafe.id)" size="small">
+                <v-icon left>mdi-coffee</v-icon>
+                카페 정보 변경
+              </v-btn>
+            </div>
           </template>
         </v-list-item>
       </v-list>
@@ -41,6 +44,7 @@
 <script>
 import axios from '@/plugins/axios';
 import { useUserStore } from "@/stores/userStore";
+import defaultCafeImage from "@/assets/images/grinder-logo.png"; // 기본 카페 이미지 경로 확인 필요
 
 export default {
   name: 'CafeManagerList',
@@ -48,7 +52,8 @@ export default {
     return {
       cafeList: [],
       loading: true,
-      error: null
+      error: null,
+      defaultCafeImage: defaultCafeImage
     };
   },
   computed: {
@@ -66,7 +71,7 @@ export default {
     async fetchManagedCafes() {
       this.loading = true;
       try {
-        const response = await axios.get(`/member/${this.userId}/managed-cafes`); //생성 예정
+        const response = await axios.get(`/cafe-manager/${this.userId}/cafes`);
         this.cafeList = response.data.data || [];
       } catch (error) {
         console.error('관리 중인 카페 목록 불러오기 실패:', error);
@@ -75,10 +80,18 @@ export default {
         this.loading = false;
       }
     },
-    manageCafe(cafeId) {
+    manageCafeReservations(cafeId) {
       this.$router.push({
         name: 'CafeManagement',
-        params: { id: cafeId }
+        params: { id: cafeId },
+        query: { view: 'BookManagement' }
+      });
+    },
+    manageCafeInfo(cafeId) {
+      this.$router.push({
+        name: 'CafeManagement',
+        params: { id: cafeId },
+        query: { view: 'ChangeCafeInfo' }
       });
     }
   },
