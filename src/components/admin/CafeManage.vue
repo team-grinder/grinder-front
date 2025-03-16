@@ -162,6 +162,7 @@
 <script>
 import SearchBox from "@/components/admin/SearchBox";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
+import $axios from "@/plugins/axios";
 
 export default {
   name: "CafeManage",
@@ -175,16 +176,15 @@ export default {
       headers: useAdminPageStateStore().getHeaders("cafe"),
       items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
+      searchType: "",
       search: "",
       findUserId: "",
       managerList: [],
       // 로딩 상태
       loading: false,
       pagination: {},
-      page: 1,
-      pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
-      currentPage: 1,
+      currentPage: 0,
       itemPerPage: 2,
       serverItems: [],
       totalItems: 0,
@@ -202,15 +202,6 @@ export default {
           userId: "",
         }
       },
-      // 실제 데이터 (Fake API용)
-      cafes: [
-        { id: 1,  name: "카페1",  description: "맛있는 커피와 디저트",  address: "서울시 강남구",  registrationDate: "2024-03-25",  image: null },
-        { id: 2,  name: "카페2",  description: "조용하고 아늑한 분위기",  address: "서울시 강북구",  registrationDate: "2024-03-25",  image: null },
-        { id: 3,  name: "카페3",  description: "트렌디한 인테리어와 음악",  address: "서울시 강동구",  registrationDate: "2024-03-25",  image: null },
-        { id: 4,  name: "카페4",  description: "도심 속 작은 정원",  address: "서울시 강서구",  registrationDate: "2024-03-25",  image: null },
-        { id: 5,  name: "카페5",  description: "24시간 열려있는 카페",  address: "서울시 강남구",  registrationDate: "2024-03-25",  image: null },
-        { id: 6,  name: "카페6",  description: "넓은 공간과 다양한 메뉴",  address: "서울시 강북구",  registrationDate: "2024-03-25",  image: null },
-      ],
     };
   },
   computed: {
@@ -219,96 +210,114 @@ export default {
     },
   },
   methods: {
+    // 카페 삭제
+    async deleteCafe(id) {
+      const response = await $axios.delete("/admin/cafe/delete", { params: { id: id } });
+
+      if (response.status === 200) {
+        this.dialogDelete = false;
+        this.currentPage = 0;
+        await this.loadItems();
+      } else {
+        alert("삭제에 실패했습니다.");
+      }
+    },
+
+    // 회원 검색
+    async findUser() {
+      this.managerList = await $axios.get("/admin/user/search", {
+        params: {
+          userId: this.findUserId,
+        },
+        returnInner: true,
+      });
+    },
+
+    // 카페 리스트 조회
+    async loadItems(param) {
+      this.loading = true;
+      if (!param) {
+        param = {
+          searchType: "ALL",
+          searchQuery: this.search,
+          page: this.currentPage,
+          size: this.itemPerPage,
+        }
+      } else this.changeParamDate(param);
+
+
+      // axios 예시
+      const response = await $axios.get("/admin/cafe/list", { params: param, returnInner: true });
+      const pageData = response.page;
+      const content = response.content;
+
+      this.totalItems = pageData.total;
+      this.serverItems = content;
+      this.currentPage = pageData.nowPage + 1;
+      this.itemPerPage = pageData.cntPerPage;
+
+      this.loading = false;
+    },
+
+    // 카페 정보 저장 / 수정
+    async saveCafe() {
+      let response;
+      if (this.selectedCafe.id) {
+        // 수정: 기존 데이터 갱신
+        response = await $axios.put(
+            "/admin/cafe/update",
+            { data: this.selectedCafe }
+        );
+      } else {
+        // 생성: 새로운 카페 추가 (새로운 id 할당)
+        response = await $axios.post(
+            "/admin/cafe/create",
+            { data: this.selectedCafe }
+        );
+      }
+      if (response.status !== 200) {
+        alert("수정에 실패했습니다.");
+        return;
+      }
+
+      // 로컬 데이터 업데이트
+      this.dialogDelete = false;
+      this.currentPage = 0;
+      await this.loadItems();
+    },
+
+    searchData(param) {
+      this.currentPage = 0;
+      this.loadItems(param);
+    },
+
+    onPageChange(page) {
+      this.currentPage = page - 1;
+      this.loadItems();
+    },
+
+    changeParamDate(param) {
+      this.searchType = param.searchType;
+      this.search = param.searchQuery;
+      this.currentPage = param.page;
+      this.itemPerPage = param.size;
+    },
+
     onRowClick(item) {
       this.selectedCafe.manager = item;
     },
+
     popupDeleteCafe(item) {
       this.selectedCafe = item;
       this.dialogDelete = true;
     },
-    deleteCafe(id) {
-      console.log("삭제할 카페 ID:", id);
-      const index = this.cafes.findIndex((cafe) => cafe.id === id);
-      if (index !== -1) {
-        this.cafes.splice(index, 1);
-        console.log(this.cafes)
-      }
-      this.dialogDelete = false;
 
-      this.loadItems();
-    },
-    async findUser() {
-      /*const response = await $axios.get("/admin/user/search", {
-        params: {
-          userId: this.findUserId,
-        },
-      });
-      this.managerList = response.data.data;*/
-
-      this.managerList = [{id : 1, userId: "user1"}, {id : 2, userId: "user2"}];
-    },
-    async loadItems(param) {
-      this.loading = true;
-      const page = this.currentPage;
-      const itemsPerPage = this.itemPerPage;
-      this.search = param ? param.searchQuery : this.search;
-
-      // 검색어(카페 이름 포함 여부)로 필터링
-      let filtered = this.cafes.filter((cafe) =>
-          cafe.name.includes(this.search)
-      );
-      // axios 예시
-      // const response = await $axios.get("/admin/cafe/search", { param });
-
-      const total = filtered.length;
-      const start = (page - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const items = filtered.slice(start, end);
-
-      // API 호출을 흉내내기 위해 500ms 딜레이 후 결과 반환
-      setTimeout(() => {
-        this.serverItems = items;
-        this.totalItems = total;
-        this.loading = false;
-      }, 500);
-    },
-    /**
-     * 검색어 변경 시 현재 페이지를 1로 초기화한 후 데이터를 재로딩합니다.
-     */
-    onSearch() {
-      this.currentPage = 1;
-      this.loadItems();
-    },
-    /**
-     * 페이지 변경 시 데이터를 다시 로드합니다.
-     */
-    onPageChange(page) {
-      this.currentPage = page;
-      this.loadItems();
-    },
-    /**
-     * 테이블 행 클릭 시 해당 카페 정보를 모달에서 수정할 수 있도록 설정합니다.
-     */
-    popupModifyCafe(cafeId) {
-      const cafe = this.cafes.find((cafe) => cafe.id === cafeId);
-      if (cafe) {
-        this.selectedCafe = {
-          ...cafe,
-          manager: {
-            id: cafe.manager ? cafe.manager.id : '',
-            userId: cafe.manager ? cafe.manager.userId : '',
-          },
-        };
-        this.dialog = true;
-      }
-    },
     changeItemsPerPage(value) {
       this.itemPerPage = value;
       this.loadItems();
     },
-    /**
-     * 카페 생성 팝업을 띄웁니다.
-     */
+
+    // 카페 생성 팝업
     popupCreateCafe() {
       this.selectedCafe = {
         id: null,
@@ -323,37 +332,21 @@ export default {
       };
       this.dialog = true;
     },
-    /**
-     * 모달에서 수정 혹은 생성한 카페 정보를 저장합니다.
-     * 수정 시 기존 데이터를 업데이트하고, 생성 시 새로운 아이템을 추가합니다.
-     */
-    saveCafe() {
-      if (this.selectedCafe.id) {
-        // 수정: 기존 데이터 갱신
-        const index = this.cafes.findIndex(
-            (cafe) => cafe.id === this.selectedCafe.id
-        );
-        if (index !== -1) {
-          this.cafes.splice(index, 1, { ...this.selectedCafe });
-        }
-      } else {
-        // 생성: 새로운 카페 추가 (새로운 id 할당)
-        const newId =
-            this.cafes.length > 0
-                ? Math.max(...this.cafes.map((cafe) => cafe.id)) + 1
-                : 1;
-        const newCafe = { ...this.selectedCafe, id: newId };
-        this.cafes.push(newCafe);
+
+    // 카페 수정 팝업
+    popupModifyCafe(cafeId) {
+      const cafe = this.cafes.find((cafe) => cafe.id === cafeId);
+      if (cafe) {
+        this.selectedCafe = {
+          ...cafe,
+          manager: {
+            id: cafe.manager ? cafe.manager.id : '',
+            userId: cafe.manager ? cafe.manager.userId : '',
+          },
+        };
+        this.dialog = true;
       }
-      this.dialog = false;
-      // 데이터 변경 반영을 위해 다시 로드
-      this.loadItems();
     },
-    searchData(param) {
-      console.log("검색어:", param);
-      this.currentPage = 1;
-      this.loadItems(param);
-    }
   },
   created() {
     // 초기 데이터 로드
