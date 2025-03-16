@@ -44,8 +44,13 @@ export default {
     const id = this.$route.params.id;
     if (id && !isNaN(id)) {
       this.cafeId = Number(id);
+      const view = this.$route.query.view;
+      if (view === 'BookManagement' || view === 'ChangeCafeInfo') {
+        this.currentView = view;
+      }
     } else {
       console.error('Invalid cafe ID:', id);
+      this.$router.push({ name: 'CafeManagerList' });
     }
   },
   methods: {

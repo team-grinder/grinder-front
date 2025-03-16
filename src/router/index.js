@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 import HeaderLayout from "@/layouts/HeaderLayout.vue";
+import CafeManagerList from '@/components/cafe/CafeManagerList.vue'
 import Home from '@/views/Home.vue';
 import Login from '@/views/Login.vue';
 import Register from '@/views/Register.vue';
@@ -9,6 +10,7 @@ import UserInformation from '@/views/UserInformation.vue';
 import Admin from '@/views/Admin.vue';
 import AdminLogin from '@/views/AdminLogin.vue';
 import BookPaymentPage from '@/views/BookPayment.vue';
+import CafeManagement from '@/components/user/CafeManagement.vue'
 
 const routes = [
     {
@@ -53,6 +55,19 @@ const routes = [
         path: '/admin',
         name: 'Admin',
         component: Admin,
+    },
+    {
+        path: '/cafe-management/:id',
+        name: 'CafeManagement',
+        component: CafeManagement,
+        props: true,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/cafe-manager/list',
+        name: 'CafeManagerList',
+        component: CafeManagerList,
+        meta: { requiresAuth: true }
     },
     {
         path: '/payment',
