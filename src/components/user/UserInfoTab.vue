@@ -7,7 +7,7 @@
       <span>예약 정보</span>
     </div>
     <v-spacer></v-spacer>
-    <div v-if="isCafeManager" id="show_cafe_management_button" class="tab_box" @click="goToCafeManagerList">
+    <div v-if="isCafeManager" id="show_cafe_management_button" class="tab_box" @click="changeView('CafeManagerList')">
       <span>카페 관리</span>
     </div>
   </article>
@@ -25,9 +25,6 @@ export default {
   methods: {
     changeView(viewName) {
       this.$emit("change-view", viewName);
-    },
-    goToCafeManagerList() {
-      this.$router.push({ name: 'CafeManagerList' });
     }
   },
 }
@@ -39,7 +36,6 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1em 1em 0;
-
   .tab_box {
     border-radius: 30px;
     box-shadow: 3px 2px 4px 0px rgba(0,0,0,25%);
@@ -48,13 +44,11 @@ export default {
     cursor: pointer;
     border: 1px solid #D9D9D9;
     background-color: white;
-
     span {
       font-family: 'GodoB', sans-serif;
       font-size: 1em;
     }
   }
-
   &:after {
     content: "";
     display: table;

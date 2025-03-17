@@ -4,13 +4,11 @@
       <v-card-title class="text-h5">
         관리 중인 카페 목록
       </v-card-title>
-
       <v-card-text v-if="loading">
         <div class="d-flex justify-center">
           <v-progress-circular indeterminate color="primary"></v-progress-circular>
         </div>
       </v-card-text>
-
       <v-card-text v-else-if="cafeList.length === 0">
         <v-alert type="info" text>
           관리 중인 카페가 없습니다.
@@ -44,10 +42,14 @@
 <script>
 import axios from '@/plugins/axios';
 import { useUserStore } from "@/stores/userStore";
-import defaultCafeImage from "@/assets/images/grinder-logo.png"; // 기본 카페 이미지 경로 확인 필요
+import defaultCafeImage from "@/assets/images/grinder-logo.png"; // 경로 확인 필요
 
 export default {
   name: 'CafeManagerList',
+  props: {
+    userId: Number,
+    isAuthenticated: Boolean,
+  },
   data() {
     return {
       cafeList: [],
@@ -60,18 +62,15 @@ export default {
     userStore() {
       return useUserStore();
     },
-    userId() {
-      return this.userStore.id;
+    currentUserId() {
+      return this.userId || this.userStore.id;
     },
-    isAuthenticated() {
-      return this.userStore.isAuthenticated;
-    }
   },
   methods: {
     async fetchManagedCafes() {
       this.loading = true;
       try {
-        const response = await axios.get(`/cafe-manager/${this.userId}/cafes`);
+        const response = await axios.get(`/cafe-manager/${this.currentUserId}/cafes`);
         this.cafeList = response.data.data || [];
       } catch (error) {
         console.error('관리 중인 카페 목록 불러오기 실패:', error);
@@ -82,22 +81,22 @@ export default {
     },
     manageCafeReservations(cafeId) {
       this.$router.push({
-        name: 'CafeManagement',
+        name: 'UserCafeManagement',
         params: { id: cafeId },
         query: { view: 'BookManagement' }
       });
     },
     manageCafeInfo(cafeId) {
       this.$router.push({
-        name: 'CafeManagement',
+        name: 'UserCafeManagement',
         params: { id: cafeId },
         query: { view: 'ChangeCafeInfo' }
       });
     }
   },
-  async created() {
-    if (this.isAuthenticated) {
-      await this.fetchManagedCafes();
+  created() {
+    if (this.isAuthenticated || this.userStore.isAuthenticated) {
+      this.fetchManagedCafes();
     }
   }
 };

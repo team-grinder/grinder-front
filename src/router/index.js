@@ -11,7 +11,8 @@ import Admin from '@/views/Admin.vue';
 import AdminLogin from '@/views/AdminLogin.vue';
 import BookPaymentPage from '@/views/BookPayment.vue';
 import CafeManagement from '@/components/user/CafeManagement.vue'
-
+import ArticleList from '@/components/cafe/ArticleList.vue'
+import BookList from '@/components/user/BookList.vue'
 const routes = [
     {
         path: '/',
@@ -50,6 +51,39 @@ const routes = [
         path: '/admin/login',
         name: 'AdminLogin',
         component: AdminLogin,
+    },
+    {
+        path: '/user',
+        component: UserInformation,
+        children: [
+            {
+                path: '',
+                name: 'UserInformation',
+                component: ArticleList,
+            },
+            {
+                path: 'article',
+                name: 'UserArticleList',
+                component: ArticleList,
+            },
+            {
+                path: 'book',
+                name: 'UserBookList',
+                component: BookList,
+            },
+            {
+                path: 'cafe-manager',
+                name: 'UserCafeManagerList',
+                component: CafeManagerList,
+            },
+            {
+                path: 'cafe-management/:id',
+                name: 'UserCafeManagement',
+                component: CafeManagement,
+                props: true,
+            }
+        ],
+        meta: { requiresAuth: true }
     },
     {
         path: '/admin',

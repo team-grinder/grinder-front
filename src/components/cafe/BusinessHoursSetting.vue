@@ -46,7 +46,7 @@
           </v-col>
         </v-row>
 
-        <v-row v-if="isEditing">
+        <v-row>
           <v-col cols="12">
             <v-select
                 v-model="businessHours.blockedTimes"
@@ -56,6 +56,7 @@
                 label="예약 불가 시간대"
                 multiple
                 chips
+                :disabled="!isEditing"
             ></v-select>
           </v-col>
         </v-row>
@@ -79,6 +80,7 @@
           color="primary"
           @click="isEditing ? saveBusinessHours() : startEditing()"
           :loading="loading"
+          :disabled="loading"
       >
         {{ isEditing ? '저장' : '수정' }}
       </v-btn>
@@ -102,7 +104,7 @@ export default {
       isEditing: false,
       loading: false,
       alertMessage: '',
-      alertType: 'info', // 'success', 'info', 'warning', 'error'
+      alertType: 'info',
       businessHours: {
         startTime: null,
         endTime: null,
@@ -116,24 +118,34 @@ export default {
       }))
     }
   },
-  computed: {
-    formattedStartTime() {
-      return this.businessHours.startTime != null
-          ? `${String(this.businessHours.startTime).padStart(2, '0')}:00`
-          : '';
-    },
-    formattedEndTime() {
-      return this.businessHours.endTime != null
-          ? `${String(this.businessHours.endTime).padStart(2, '0')}:00`
-          : '';
-    }
-  },
   methods: {
     async fetchBusinessHours() {
       try {
         this.loading = true;
+
         const response = await axios.get(`/cafe/${this.cafeId}/business-hours`);
-        this.businessHours = response.data;
+
+        if (response.data) {
+          console.log('영업시간 조회 응답:', response.data);
+          const data = response.data;
+
+          const startTime = data.startTime;
+          const endTime = data.endTime;
+
+          const maxTimePerReservation = data.maxTime || data.maxTimePerReservation || 0;
+
+          const blockedTimes = data.invalidList || data.blockedTimes || [];
+
+          this.businessHours = {
+            startTime: startTime,
+            endTime: endTime,
+            maxTimePerReservation: maxTimePerReservation,
+            maxGuestsPerTime: data.maxGuestsPerTime || 0,
+            blockedTimes: blockedTimes
+          };
+
+          console.log('화면 표시용 변환 데이터:', this.businessHours);
+        }
       } catch (error) {
         console.error('영업시간 조회 실패:', error);
         this.showAlert('영업시간 정보를 불러오는데 실패했습니다.', 'error');
@@ -148,45 +160,39 @@ export default {
       try {
         this.loading = true;
 
-        // 시간 형식 변환 (숫자 -> 문자열 형식으로)
         const formattedData = {
           startTime: this.formatTimeForAPI(this.businessHours.startTime),
           endTime: this.formatTimeForAPI(this.businessHours.endTime),
-          maxTimePerReservation: Number(this.businessHours.maxTimePerReservation),
-          maxGuestsPerTime: Number(this.businessHours.maxGuestsPerTime),
-          blockedTimes: this.businessHours.blockedTimes.map(time => this.formatTimeForAPI(time))
+          maxTime: parseInt(this.businessHours.maxTimePerReservation || 60, 10), // maxTimePerReservation -> maxTime
+          maxGuestsPerTime: parseInt(this.businessHours.maxGuestsPerTime || 10, 10),
+          invalidList: (this.businessHours.blockedTimes || []).map(time => this.formatTimeForAPI(time)) // blockedTimes -> invalidList
         };
+
+        console.log('저장할 데이터:', formattedData);
 
         await axios.put(`/cafe-manager/cafe/${this.cafeId}/business-hours`, formattedData);
 
         this.isEditing = false;
         this.showAlert('영업시간 설정이 저장되었습니다.', 'success');
+
         await this.fetchBusinessHours();
       } catch (error) {
         console.error('영업시간 저장 실패:', error);
-        this.showAlert('영업시간 저장에 실패했습니다: ' + this.getErrorMessage(error), 'error');
+        this.showAlert('영업시간 저장에 실패했습니다.', 'error');
       } finally {
         this.loading = false;
       }
     },
-    // 시간 형식을 API 요구사항에 맞게 변환 (예: 9 -> "09:00:00")
     formatTimeForAPI(time) {
-      if (time === null || time === undefined) return null;
+      if (time === null || time === undefined) {
+        return null;
+      }
       return `${String(time).padStart(2, '0')}:00:00`;
     },
-    // 에러 메시지 추출
-    getErrorMessage(error) {
-      if (error.response && error.response.data && error.response.data.message) {
-        return error.response.data.message;
-      }
-      return error.message || '알 수 없는 오류가 발생했습니다.';
-    },
-    // 알림 메시지 표시
     showAlert(message, type = 'info') {
       this.alertMessage = message;
       this.alertType = type;
 
-      // 5초 후 알림 자동 제거
       setTimeout(() => {
         this.alertMessage = '';
       }, 5000);
@@ -198,6 +204,7 @@ export default {
       this.showAlert('카페 정보를 찾을 수 없습니다.', 'error');
       return;
     }
+
     this.fetchBusinessHours();
   }
 }
