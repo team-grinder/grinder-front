@@ -163,9 +163,9 @@ export default {
         const formattedData = {
           startTime: this.formatTimeForAPI(this.businessHours.startTime),
           endTime: this.formatTimeForAPI(this.businessHours.endTime),
-          maxTime: parseInt(this.businessHours.maxTimePerReservation || 60, 10), // maxTimePerReservation -> maxTime
+          maxTimePerReservation: parseInt(this.businessHours.maxTimePerReservation || 60, 10), // maxTime -> maxTimePerReservation
           maxGuestsPerTime: parseInt(this.businessHours.maxGuestsPerTime || 10, 10),
-          invalidList: (this.businessHours.blockedTimes || []).map(time => this.formatTimeForAPI(time)) // blockedTimes -> invalidList
+          blockedTimes: (this.businessHours.blockedTimes || []).map(time => this.formatTimeForAPI(time)) // invalidList -> blockedTimes
         };
 
         console.log('저장할 데이터:', formattedData);
