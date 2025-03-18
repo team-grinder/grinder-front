@@ -97,7 +97,7 @@ export default {
     async fetchTimeSlots() {
       try {
         this.loading = true;
-        const response = await axios.get(`/cafe/${this.cafeId}/time-slots`, {
+        const response = await axios.get(`/tabling/time-slots/${this.cafeId}`, {
           params: { date: this.selectedDate }
         });
         this.timeSlots = (response.data || []).map(slot => ({
@@ -117,11 +117,11 @@ export default {
     async saveTimeSlots() {
       try {
         this.loading = true;
-        await axios.put(`/cafe-manager/cafe/${this.cafeId}/time-slots`, {
+        await axios.put(`/tabling/time-slots/${this.cafeId}`, {
           date: this.selectedDate,
           timeSlots: this.timeSlots.map(slot => ({
             reserveTime: typeof slot.reserveTime === 'string' && slot.reserveTime.includes(':')
-                ? slot.reserveTime + ':00' // 초를 추가 (예: "09:00" -> "09:00:00")
+                ? slot.reserveTime + ':00'
                 : this.formatTime(slot.reserveTime) + ':00',
             maxGuests: parseInt(slot.maxGuests, 10)
           }))
