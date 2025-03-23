@@ -11,7 +11,7 @@
       <v-col cols="auto">
         <v-select
             v-model="itemPerPage"
-            :items="items_per_page_options"
+            :items="itemsPerPageOptions"
             label="페이지 당 아이템 수"
             density="compact"
             variant="outlined"
@@ -33,7 +33,7 @@
         :loading="loading"
         :total-items="totalItems"
         :items-per-page="itemPerPage"
-        :items-per-page-options="items_per_page_options"
+        :items-per-page-options="itemsPerPageOptions"
         :server-items-length="totalItems"
         :page="currentPage"
         hover
@@ -84,7 +84,7 @@
           <v-btn color="red darken-1" @click="dialogDelete = false">
             취소
           </v-btn>
-          <v-btn color="red darken-1" @click="deleteMember(selectedMember.id)">
+          <v-btn color="red darken-1" @click="deleteItem(selectedItem.id)">
             삭제
           </v-btn>
         </v-card-actions>
@@ -95,45 +95,45 @@
     <v-dialog v-model="dialog" max-width="1000px">
       <v-card>
         <v-card-title>
-          {{ selectedMember.id ? '회원 정보 수정' : '회원 생성' }}
+          {{ selectedItem.id ? '회원 정보 수정' : '회원 생성' }}
         </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedMember.email"
+                  v-model="selectedItem.email"
                   label="회원 이메일"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedMember.phoneNumber"
+                  v-model="selectedItem.phoneNumber"
                   label="회원 전화번호"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedMember.nickname"
+                  v-model="selectedItem.nickname"
                   label="회원 닉네임"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-select
-                  v-model="selectedMember.loginType"
+                  v-model="selectedItem.loginType"
                   :items="['소셜', '일반']"
                   label="로그인 방식"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-select
-                  v-model="selectedMember.TierType"
+                  v-model="selectedItem.TierType"
                   :items="['MASTER', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'CAFE_MANAGER', 'ADMIN']"
                   label="회원 등급"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-select
-                  v-model="selectedMember.isDeleted"
+                  v-model="selectedItem.isDeleted"
                   :items="['탈퇴', '활동']"
                   label="탈퇴 여부"
                   variant="underlined" />
@@ -149,7 +149,7 @@
                 <template v-slot:append>
                   <v-btn
                       color="primary"
-                      @click="findMember">
+                      @click="findCafe">
                     검색
                   </v-btn>
                 </template>
@@ -166,7 +166,7 @@
 
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedMember.cafeAdmin.cafeName"
+                  v-model="selectedItem.cafeAdmin.cafeName"
                   readonly
                   label="카페 관리">
               </v-text-field>
@@ -174,7 +174,7 @@
           </v-row>
         </v-card-text>
         <v-card-actions class="pa-6">
-          <v-btn color="primary" size="large" variant="tonal" @click="saveCafe">
+          <v-btn color="primary" size="large" variant="tonal" @click="saveItem">
             저장
           </v-btn>
           <v-btn color="red-lighten-4" size="large" variant="tonal" @click="dialog = false">
@@ -189,6 +189,7 @@
 <script>
 import SearchBox from "@/components/admin/SearchBox";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
+import $axios from "@/plugins/axios";
 
 export default {
   name: "MemberManage",
@@ -198,93 +199,27 @@ export default {
   data() {
     return {
       // 검색 옵션
+      field: "member",
       options: useAdminPageStateStore().getOptions("member"),
       headers: useAdminPageStateStore().getHeaders("member"),
-      items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
+      selectedItem: useAdminPageStateStore().getSelectedItemForm("member"),
+      itemsPerPageOptions: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
+      searchType: "",
       search: "",
       findCafeId: "",
       managerList: [],
       // 로딩 상태
       loading: false,
       pagination: {},
-      page: 1,
-      pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
-      currentPage: 1,
+      currentPage: 0,
       itemPerPage: 2,
       serverItems: [],
       totalItems: 0,
       // 모달 다이얼로그 관련
       dialogDelete: false,
       dialog: false,
-      selectedMember: {
-        id: null,
-        email: "",
-        phoneNumber: "",
-        nickname: "",
-        loginType: "",
-        TierType: "",
-        isDeleted: "",
-        registrationDate: "",
-        cafeAdmin: {
-          id: "",
-          cafeName: "",
-        }
-      },
-      // 실제 데이터 (Fake API용)
-      members: [
-        {
-          id: 1,
-          email: "test@test.com",
-          phoneNumber: "010-1234-5678",
-          nickname: "테스트",
-          loginType: "일반", // 소셜, 일반
-          TierType: "CAFE_MANAGER", // MASTER ,DIAMOND ,PLATINUM ,GOLD ,SILVER ,CAFE_MANAGER ,ADMIN
-          cafeAdmin: {
-            id: 1,
-            cafeName: "카페1"
-          },
-          isDeleted: false,
-          registrationDate: "2021-09-01",
-        },
-        {
-          id: 2,
-          email: "test1@test.com",
-          phoneNumber: "010-1234-5678",
-          nickname: "테스트1",
-          loginType: "소셜", // 소셜, 일반
-          TierType: "CAFE_MANAGER", // MASTER ,DIAMOND ,PLATINUM ,GOLD ,SILVER ,CAFE_MANAGER ,ADMIN
-          cafeAdmin: {
-            id: 2,
-            cafeName: "카페2"
-          },
-          isDeleted: false,
-          registrationDate: "2021-09-01",
-        },
-        {
-          id: 3,
-          email: "test2@test.com",
-          phoneNumber: "010-1234-5678",
-          nickname: "테스트2",
-          loginType: "일반", // 소셜, 일반
-          TierType: "PLATINUM", // MASTER ,DIAMOND ,PLATINUM ,GOLD ,SILVER ,CAFE_MANAGER ,ADMIN
-          cafeAdmin: null,
-          isDeleted: false,
-          registrationDate: "2021-09-01",
-        },
-        {
-          id: 4,
-          email: "test3@test.com",
-          phoneNumber: "010-1234-5678",
-          nickname: "테스트3",
-          loginType: "소셜", // 소셜, 일반
-          TierType: "GOLD", // MASTER ,DIAMOND ,PLATINUM ,GOLD ,SILVER ,CAFE_MANAGER ,ADMIN
-          cafeAdmin: null,
-          isDeleted: false,
-          registrationDate: "2021-09-01",
-        }
-      ],
     };
   },
   computed: {
@@ -293,80 +228,119 @@ export default {
     },
   },
   methods: {
-    onRowClick(item) {
-      this.selectedMember.cafeAdmin = item;
-    },
-    popupDeleteMember(item) {
-      this.selectedMember = item;
-      this.dialogDelete = true;
-    },
-    deleteMember(id) {
-      console.log("삭제할 유저 ID:", id);
-      const index = this.members.findIndex((member) => member.id === id);
-      if (index !== -1) {
-        this.members.splice(index, 1);
-        console.log(this.members)
-      }
-      this.dialogDelete = false;
-
-      this.loadItems();
-    },
-    async findMember() {
-      /*const response = await $axios.get("/admin/user/search", {
-        params: {
-          userId: this.findUserId,
-        },
-      });
-      this.managerList = response.data.data;*/
-
-      this.managerList = [{id : 1, cafeName: "카페1"}, {id : 2, cafeName: "카페2"}];
-    },
     async loadItems(param) {
       this.loading = true;
-      const page = this.currentPage;
-      const itemsPerPage = this.itemPerPage;
-      this.search = param ? param.searchQuery : this.search;
+      if (!param) {
+        param = {
+          searchType: "ALL",
+          searchQuery: this.search,
+          page: this.currentPage,
+          size: this.itemPerPage,
+        }
+      } else {
+        this.changeParamDate(param);
+      }
 
-      // 검색어로 필터링
-      let filtered = this.members.filter((member) =>
-          member.email.includes(this.search)
-      );
       // axios 예시
-      // const response = await $axios.get("/admin/cafe/search", { param });
+      const response = await $axios.get("/admin/" + this.field + "/list", { params: param, returnInner: true });
+      const pageData = response.page;
+      const content = response.content;
 
-      const total = filtered.length;
-      const start = (page - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const items = filtered.slice(start, end);
+      this.totalItems = pageData.total;
+      this.serverItems = content;
+      this.currentPage = pageData.nowPage + 1;
+      this.itemPerPage = pageData.cntPerPage;
 
-      // API 호출을 흉내내기 위해 500ms 딜레이 후 결과 반환
-      setTimeout(() => {
-        this.serverItems = items;
-        this.totalItems = total;
-        this.loading = false;
-      }, 500);
+      this.loading = false;
     },
-    /**
-     * 검색어 변경 시 현재 페이지를 1로 초기화한 후 데이터를 재로딩합니다.
-     */
-    onSearch() {
-      this.currentPage = 1;
-      this.loadItems();
+
+    async saveItem() {
+      let response;
+      if (this.selectedItem.id) {
+        // 수정: 기존 데이터 갱신
+        response = await $axios.put(
+            "/admin/" + this.field + "/update",
+            { data: this.selectedCafe }
+        );
+      } else {
+        // 생성: 새로운 카페 추가 (새로운 id 할당)
+        response = await $axios.post(
+            "/admin/" + this.field + "/create",
+            { data: this.selectedCafe }
+        );
+      }
+      if (response.status !== 200) {
+        alert("수정에 실패했습니다.");
+        return;
+      }
+
+      // 로컬 데이터 업데이트
+      this.dialogDelete = false;
+      this.currentPage = 0;
+      await this.loadItems();
     },
-    /**
-     * 페이지 변경 시 데이터를 다시 로드합니다.
-     */
+
+    async deleteItem(id) {
+      const response = await $axios.delete("/admin/" + this.field + "/delete", { params: { id: id } });
+
+      if (response.status === 200) {
+        this.dialogDelete = false;
+        this.currentPage = 0;
+        await this.loadItems();
+      } else {
+        alert("삭제에 실패했습니다.");
+      }
+    },
+
+    async findCafe() {
+      this.managerList = await $axios.get("/admin/user/search", {
+        params: {
+          cafeId: this.findCafeId,
+        },
+        returnInner: true,
+      });
+    },
+
+    searchData(param) {
+      this.currentPage = 0;
+      this.loadItems(param);
+    },
+
     onPageChange(page) {
       this.currentPage = page;
       this.loadItems();
     },
-    /**
-     * 테이블 행 클릭 시 해당 카페 정보를 모달에서 수정할 수 있도록 설정합니다.
-     */
+
+    changeParamDate(param) {
+      this.searchType = param.searchType;
+      this.search = param.searchQuery;
+      this.currentPage = param.page;
+      this.itemPerPage = param.size;
+    },
+
+    onRowClick(item) {
+      this.selectedItem.cafeAdmin = item;
+    },
+
+    popupDeleteMember(item) {
+      this.selectedItem = item;
+      this.dialogDelete = true;
+    },
+
+    changeItemsPerPage(value) {
+      this.itemPerPage = value;
+      this.loadItems();
+    },
+
+    popupCreateCafe() {
+      this.selectedItem = useAdminPageStateStore().getSelectedItemForm(this.field);
+      this.dialog = true;
+    },
+
     popupModifyMember(memberId) {
-      const member = this.members.find((member) => member.id === memberId);
+      const member = this.serverItems.find((member) => member.id === memberId);
       if (member) {
-        this.selectedMember = {
+        this.selectedItem = {
           ...member,
           cafeAdmin: {
             id: member.cafeAdmin ? member.cafeAdmin.id : '',
@@ -376,61 +350,6 @@ export default {
         this.dialog = true;
       }
     },
-    changeItemsPerPage(value) {
-      this.itemPerPage = value;
-      this.loadItems();
-    },
-    /**
-     * 카페 생성 팝업을 띄웁니다.
-     */
-    popupCreateCafe() {
-      this.selectedMember = {
-        id: null,
-        email: "",
-        phoneNumber: "",
-        nickname: "",
-        loginType: "",
-        TierType: "",
-        isDeleted: "",
-        registrationDate: new Date().toISOString().substr(0, 10),
-        cafeAdmin: {
-          id: "",
-          cafeName: "",
-        }
-      };
-      this.dialog = true;
-    },
-    /**
-     * 모달에서 수정 혹은 생성한 카페 정보를 저장합니다.
-     * 수정 시 기존 데이터를 업데이트하고, 생성 시 새로운 아이템을 추가합니다.
-     */
-    saveCafe() {
-      if (this.selectedMember.id) {
-        // 수정: 기존 데이터 갱신
-        const index = this.members.findIndex(
-            (member) => member.id === this.selectedMember.id
-        );
-        if (index !== -1) {
-          this.members.splice(index, 1, { ...this.selectedMember });
-        }
-      } else {
-        // 생성: 새로운 카페 추가 (새로운 id 할당)
-        const newId =
-            this.members.length > 0
-                ? Math.max(...this.members.map((member) => member.id)) + 1
-                : 1;
-        const newMember = { ...this.selectedMember, id: newId };
-        this.members.push(newMember);
-      }
-      this.dialog = false;
-      // 데이터 변경 반영을 위해 다시 로드
-      this.loadItems();
-    },
-    searchData(param) {
-      console.log("검색어:", param);
-      this.currentPage = 1;
-      this.loadItems(param);
-    }
   },
   created() {
     // 초기 데이터 로드

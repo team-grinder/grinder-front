@@ -132,6 +132,7 @@
 <script>
 import SearchBox from "@/components/admin/SearchBox";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
+import $axios from "@/plugins/axios";
 
 export default {
   name: "FeedManage",
@@ -141,45 +142,25 @@ export default {
   data() {
     return {
       // 검색 옵션
+      field: "feed",
       options: useAdminPageStateStore().getOptions("feed"),
       headers: useAdminPageStateStore().getHeaders("feed"),
+      selectedItem: useAdminPageStateStore().getSelectedItemForm("feed"),
       items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
-      findCafeId: "",
       managerList: [],
       // 로딩 상태
       loading: false,
       pagination: {},
-      page: 1,
-      pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
-      currentPage: 1,
+      currentPage: 0,
       itemPerPage: 2,
       serverItems: [],
       totalItems: 0,
       // 모달 다이얼로그 관련
       dialogDelete: false,
       dialog: false,
-      selectedItem: {
-        id: null,
-        title: "",
-        content: "",
-        registrationDate: new Date().toISOString().substr(0, 10),
-      },
-      // 실제 데이터 (Fake API용)
-      dummies: [
-        { id: 1, title: "피드1", content: "피드1 내용", registrationDate: "2021-09-01", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 2, title: "피드2", content: "피드2 내용", registrationDate: "2021-09-02", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 3, title: "피드3", content: "피드3 내용", registrationDate: "2021-09-03", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 4, title: "피드4", content: "피드4 내용", registrationDate: "2021-09-04", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 5, title: "피드5", content: "피드5 내용", registrationDate: "2021-09-05", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 6, title: "피드6", content: "피드6 내용", registrationDate: "2021-09-06", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 7, title: "피드7", content: "피드7 내용", registrationDate: "2021-09-07", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 8, title: "피드8", content: "피드8 내용", registrationDate: "2021-09-08", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 9, title: "피드9", content: "피드9 내용", registrationDate: "2021-09-09", member: {nickname: "admin"}, imageList: [], blind: false },
-        { id: 10, title: "피드10", content: "피드10 내용", registrationDate: "2021-09-10", member: {nickname: "admin"}, imageList: [], blind: false },
-      ],
     };
   },
   computed: {
@@ -188,65 +169,100 @@ export default {
     },
   },
   methods: {
+    async loadItems(param) {
+      this.loading = true;
+      if (!param) {
+        param = {
+          searchType: "ALL",
+          searchQuery: this.search,
+          page: this.currentPage,
+          size: this.itemPerPage,
+        }
+      } else {
+        this.changeParamDate(param);
+      }
+
+      // axios 예시
+      const response = await $axios.get("/admin/" + this.field + "/list", { params: param, returnInner: true });
+      const pageData = response.page;
+      const content = response.content;
+
+      this.totalItems = pageData.total;
+      this.serverItems = content;
+      this.currentPage = pageData.nowPage + 1;
+      this.itemPerPage = pageData.cntPerPage;
+
+      this.loading = false;
+    },
+
+    async saveItem() {
+      let response;
+      if (this.selectedItem.id) {
+        // 수정: 기존 데이터 갱신
+        response = await $axios.put(
+            "/admin/" + this.field + "/update",
+            { data: this.selectedItem }
+        );
+      } else {
+        // 생성: 새로운 카페 추가 (새로운 id 할당)
+        response = await $axios.post(
+            "/admin/" + this.field + "/create",
+            { data: this.selectedItem }
+        );
+      }
+      if (response.status !== 200) {
+        alert("수정에 실패했습니다.");
+        return;
+      }
+
+      // 로컬 데이터 업데이트
+      this.dialogDelete = false;
+      this.currentPage = 0;
+      await this.loadItems();
+    },
+
+    async deleteItem(id) {
+      const response = await $axios.delete("/admin/" + this.field + "/delete", { params: { id: id } });
+
+      if (response.status === 200) {
+        this.dialogDelete = false;
+        this.currentPage = 0;
+        await this.loadItems();
+      } else {
+        alert("삭제에 실패했습니다.");
+      }
+    },
+
+    searchData(param) {
+      this.currentPage = 0;
+      this.loadItems(param);
+    },
+
+    onPageChange(page) {
+      this.currentPage = page - 1;
+      this.loadItems();
+    },
+
+    changeParamDate(param) {
+      this.searchType = param.searchType;
+      this.search = param.searchQuery;
+      this.currentPage = param.page;
+      this.itemPerPage = param.size;
+    },
+
     popupDelete(item) {
       this.selectedItem = item;
       this.dialogDelete = true;
     },
-    deleteItem(id) {
-      const index = this.dummies.findIndex((item) => item.id === id);
-      if (index !== -1) {
-        this.dummies.splice(index, 1);
-      }
-      this.dialogDelete = false;
 
+    changeItemsPerPage(value) {
+      this.itemPerPage = value;
+      this.currentPage = 0;
       this.loadItems();
     },
-    async loadItems(param) {
-      this.loading = true;
-      const page = this.currentPage;
-      const itemsPerPage = this.itemPerPage;
-      this.search = param ? param.searchQuery : this.search;
 
-      // 검색어로 필터링
-      let filtered = this.dummies.filter((item) =>
-          item.title.includes(this.search)
-      );
-      // axios 예시
-      // const response = await $axios.get("/admin/cafe/search", { param });
-
-      const total = filtered.length;
-      const start = (page - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const items = filtered.slice(start, end);
-
-      console.log(items)
-
-      // API 호출을 흉내내기 위해 500ms 딜레이 후 결과 반환
-      setTimeout(() => {
-        this.serverItems = items;
-        this.totalItems = total;
-        this.loading = false;
-      }, 500);
-    },
-    /**
-     * 검색어 변경 시 현재 페이지를 1로 초기화한 후 데이터를 재로딩합니다.
-     */
-    onSearch() {
-      this.currentPage = 1;
-      this.loadItems();
-    },
-    /**
-     * 페이지 변경 시 데이터를 다시 로드합니다.
-     */
-    onPageChange(page) {
-      this.currentPage = page;
-      this.loadItems();
-    },
-    /**
-     * 테이블 행 클릭 시 해당 카페 정보를 모달에서 수정할 수 있도록 설정합니다.
-     */
     popupModify(itemId) {
-      const item = this.dummies.find((item) => item.id === itemId);
+      const item = this.serverItems.find((item) => item.id === itemId);
       if (item) {
         this.selectedItem = {
           ...item,
@@ -254,41 +270,6 @@ export default {
         this.dialog = true;
       }
     },
-    changeItemsPerPage(value) {
-      this.itemPerPage = value;
-      this.loadItems();
-    },
-    /**
-     * 모달에서 수정 혹은 생성한 카페 정보를 저장합니다.
-     * 수정 시 기존 데이터를 업데이트하고, 생성 시 새로운 아이템을 추가합니다.
-     */
-    saveItem() {
-      if (this.selectedItem.id) {
-        // 수정: 기존 데이터 갱신
-        const index = this.dummies.findIndex(
-            (item) => item.id === this.selectedItem.id
-        );
-        if (index !== -1) {
-          this.dummies.splice(index, 1, { ...this.selectedItem });
-        }
-      } else {
-        // 생성: 새로운 카페 추가 (새로운 id 할당)
-        const newId =
-            this.dummies.length > 0
-                ? Math.max(...this.dummies.map((item) => item.id)) + 1
-                : 1;
-        const newItem = { ...this.selectedItem, id: newId };
-        this.dummies.push(newItem);
-      }
-      this.dialog = false;
-      // 데이터 변경 반영을 위해 다시 로드
-      this.loadItems();
-    },
-    searchData(param) {
-      console.log("검색어:", param);
-      this.currentPage = 1;
-      this.loadItems(param);
-    }
   },
   created() {
     // 초기 데이터 로드

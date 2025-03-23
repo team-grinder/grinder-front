@@ -11,7 +11,7 @@
       <v-col cols="auto">
         <v-select
             v-model="itemPerPage"
-            :items="items_per_page_options"
+            :items="itemsPerPageOptions"
             label="페이지 당 아이템 수"
             density="compact"
             variant="outlined"
@@ -20,7 +20,7 @@
             @update:modelValue="changeItemsPerPage"
         ></v-select>
       </v-col>
-      <v-btn size="large" variant="tonal" prepend-icon="mdi-coffee" @click="popupCreateCafe">
+      <v-btn size="large" variant="tonal" prepend-icon="mdi-coffee" @click="popupCreate">
         카페 생성
       </v-btn>
     </v-row>
@@ -33,7 +33,7 @@
         :loading="loading"
         :total-items="totalItems"
         :items-per-page="itemPerPage"
-        :items-per-page-options="items_per_page_options"
+        :items-per-page-options="itemsPerPageOptions"
         :server-items-length="totalItems"
         :page="currentPage"
         hover
@@ -47,7 +47,7 @@
         <v-icon class="me-2" size="small" @click="popupModifyCafe(item.id)">
           mdi-pencil
         </v-icon>
-        <v-icon size="small" @click="popupDeleteCafe(item)">
+        <v-icon size="small" @click="popupDelete(item)">
           mdi-delete
         </v-icon>
       </template>
@@ -79,7 +79,7 @@
           <v-btn color="red darken-1" @click="dialogDelete = false">
             취소
           </v-btn>
-          <v-btn color="red darken-1" @click="deleteCafe(selectedCafe.id)">
+          <v-btn color="red darken-1" @click="deleteCafe(selectedItem.id)">
             삭제
           </v-btn>
         </v-card-actions>
@@ -90,25 +90,25 @@
     <v-dialog v-model="dialog" max-width="1000px">
       <v-card>
         <v-card-title>
-          {{ selectedCafe.id ? '카페 정보 수정' : '카페 생성' }}
+          {{ selectedItem.id ? '카페 정보 수정' : '카페 생성' }}
         </v-card-title>
         <v-card-text>
           <v-row>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedCafe.name"
+                  v-model="selectedItem.name"
                   label="카페 이름"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedCafe.description"
+                  v-model="selectedItem.description"
                   label="카페 설명"
                   variant="underlined" />
             </v-col>
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedCafe.address"
+                  v-model="selectedItem.address"
                   label="카페 주소"
                   variant="underlined" />
             </v-col>
@@ -139,7 +139,7 @@
 
             <v-col cols="12">
               <v-text-field
-                  v-model="selectedCafe.manager.userId"
+                  v-model="selectedItem.manager.userId"
                   readonly
                   label="관리자 회원 아이디">
               </v-text-field>
@@ -172,9 +172,11 @@ export default {
   data() {
     return {
       // 검색 옵션
+      field: "cafe",
       options: useAdminPageStateStore().getOptions("cafe"),
       headers: useAdminPageStateStore().getHeaders("cafe"),
-      items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
+      selectedItem: useAdminPageStateStore().getSelectedItemForm("cafe"),
+      itemsPerPageOptions: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       searchType: "",
       search: "",
@@ -191,17 +193,6 @@ export default {
       // 모달 다이얼로그 관련
       dialogDelete: false,
       dialog: false,
-      selectedCafe: {
-        id: null,
-        name: "",
-        description: "",
-        address: "",
-        registrationDate: "",
-        manager: {
-          id: null,
-          userId: "",
-        }
-      },
     };
   },
   computed: {
@@ -210,9 +201,36 @@ export default {
     },
   },
   methods: {
+    // 카페 리스트 조회
+    async loadItems(param) {
+      this.loading = true;
+      if (!param) {
+        param = {
+          searchType: "ALL",
+          searchQuery: this.search,
+          page: this.currentPage,
+          size: this.itemPerPage,
+        }
+      } else {
+        this.changeParamDate(param);
+      }
+
+      // axios 예시
+      const response = await $axios.get("/admin/" + this.field + "/list", { params: param, returnInner: true });
+      const pageData = response.page;
+      const content = response.content;
+
+      this.totalItems = pageData.total;
+      this.serverItems = content;
+      this.currentPage = pageData.nowPage + 1;
+      this.itemPerPage = pageData.cntPerPage;
+
+      this.loading = false;
+    },
+
     // 카페 삭제
     async deleteCafe(id) {
-      const response = await $axios.delete("/admin/cafe/delete", { params: { id: id } });
+      const response = await $axios.delete("/admin/" + this.field + "/delete", { params: { id: id } });
 
       if (response.status === 200) {
         this.dialogDelete = false;
@@ -233,46 +251,20 @@ export default {
       });
     },
 
-    // 카페 리스트 조회
-    async loadItems(param) {
-      this.loading = true;
-      if (!param) {
-        param = {
-          searchType: "ALL",
-          searchQuery: this.search,
-          page: this.currentPage,
-          size: this.itemPerPage,
-        }
-      } else this.changeParamDate(param);
-
-
-      // axios 예시
-      const response = await $axios.get("/admin/cafe/list", { params: param, returnInner: true });
-      const pageData = response.page;
-      const content = response.content;
-
-      this.totalItems = pageData.total;
-      this.serverItems = content;
-      this.currentPage = pageData.nowPage + 1;
-      this.itemPerPage = pageData.cntPerPage;
-
-      this.loading = false;
-    },
-
     // 카페 정보 저장 / 수정
     async saveCafe() {
       let response;
-      if (this.selectedCafe.id) {
+      if (this.selectedItem.id) {
         // 수정: 기존 데이터 갱신
         response = await $axios.put(
-            "/admin/cafe/update",
-            { data: this.selectedCafe }
+            "/admin/" + this.field + "/update",
+            { data: this.selectedItem }
         );
       } else {
         // 생성: 새로운 카페 추가 (새로운 id 할당)
         response = await $axios.post(
-            "/admin/cafe/create",
-            { data: this.selectedCafe }
+            "/admin/" + this.field + "/create",
+            { data: this.selectedItem }
         );
       }
       if (response.status !== 200) {
@@ -304,40 +296,30 @@ export default {
     },
 
     onRowClick(item) {
-      this.selectedCafe.manager = item;
+      this.selectedItem.manager = item;
     },
 
-    popupDeleteCafe(item) {
-      this.selectedCafe = item;
+    popupDelete(item) {
+      this.selectedItem = item;
       this.dialogDelete = true;
     },
 
     changeItemsPerPage(value) {
       this.itemPerPage = value;
+      this.currentPage = 0;
       this.loadItems();
     },
 
-    // 카페 생성 팝업
-    popupCreateCafe() {
-      this.selectedCafe = {
-        id: null,
-        name: "",
-        description: "",
-        address: "",
-        registrationDate: new Date().toISOString().substr(0, 10),
-        manager: {
-          id: null,
-          userId: "",
-        }
-      };
+    popupCreate() {
+      this.selectedItem = useAdminPageStateStore().getSelectedItemForm(this.field);
       this.dialog = true;
     },
 
     // 카페 수정 팝업
     popupModifyCafe(cafeId) {
-      const cafe = this.cafes.find((cafe) => cafe.id === cafeId);
+      const cafe = this.serverItems.find((cafe) => cafe.id === cafeId);
       if (cafe) {
-        this.selectedCafe = {
+        this.selectedItem = {
           ...cafe,
           manager: {
             id: cafe.manager ? cafe.manager.id : '',

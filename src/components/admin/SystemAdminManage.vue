@@ -79,7 +79,7 @@
           <v-btn color="red darken-1" @click="dialogDelete = false">
             취소
           </v-btn>
-          <v-btn color="red darken-1" @click="deleteSystemAdmin(selectedSystemAdmin.id)">
+          <v-btn color="red darken-1" @click="deleteItem(selectedSystemAdmin.id)">
             삭제
           </v-btn>
         </v-card-actions>
@@ -122,7 +122,7 @@
           </v-row>
         </v-card-text>
         <v-card-actions class="pa-6">
-          <v-btn color="primary" size="large" variant="tonal" @click="saveSystemAdmin">
+          <v-btn color="primary" size="large" variant="tonal" @click="saveItem">
             저장
           </v-btn>
           <v-btn color="red-lighten-4" size="large" variant="tonal" @click="dialog = false">
@@ -137,6 +137,7 @@
 <script>
 import SearchBox from "@/components/admin/SearchBox";
 import { useAdminPageStateStore } from "@/stores/adminPageStateStore";
+import $axios from "@/plugins/axios";
 
 export default {
   name: "SystemAdminManage",
@@ -146,8 +147,10 @@ export default {
   data() {
     return {
       // 검색 옵션
+      field: "systemAdmin",
       options: useAdminPageStateStore().getOptions("systemAdmin"),
       headers: useAdminPageStateStore().getHeaders("systemAdmin"),
+      selectedItem: useAdminPageStateStore().getSelectedItemForm("systemAdmin"),
       items_per_page_options: useAdminPageStateStore().getItemsPerPageOptions,
       // 검색어
       search: "",
@@ -155,8 +158,6 @@ export default {
       // 로딩 상태
       loading: false,
       pagination: {},
-      page: 1,
-      pageSize: 5,
       // 페이지네이션 관련: 현재 페이지 및 페이지당 아이템 수
       currentPage: 1,
       itemPerPage: 2,
@@ -166,20 +167,6 @@ export default {
       dialogDelete: false,
       dialog: false,
       visible: false,
-      selectedSystemAdmin: {
-        id: null,
-        email: "",
-        nickname: "",
-      },
-      // 실제 데이터 (Fake API용)
-      admins: [
-        { id: 1, email: "admin@admin.com", nickname: "관리자1", createDate: "2021-10-01" },
-        { id: 2, email: "admin1@admin.com", nickname: "관리자2", createDate: "2021-10-02" },
-        { id: 3, email: "admin2@admin.com", nickname: "관리자3", createDate: "2021-10-03" },
-        { id: 4, email: "admin3@admin.com", nickname: "관리자4", createDate: "2021-10-04" },
-        { id: 5, email: "admin4@admin.com", nickname: "관리자5", createDate: "2021-10-05" },
-        { id: 6, email: "admin5@admin.com", nickname: "관리자6", createDate: "2021-10-06" },
-      ],
     };
   },
   computed: {
@@ -188,116 +175,113 @@ export default {
     },
   },
   methods: {
-    popupDeleteSystemAdmin(item) {
-      this.selectedSystemAdmin = item;
-      this.dialogDelete = true;
-    },
-    deleteSystemAdmin(id) {
-      const index = this.admins.findIndex((admin) => admin.id === id);
-      if (index !== -1) {
-        this.admins.splice(index, 1);
-        console.log(this.admins)
-      }
-      this.dialogDelete = false;
-
-      this.loadItems();
-    },
     async loadItems(param) {
       this.loading = true;
-      const page = this.currentPage;
-      const itemsPerPage = this.itemPerPage;
-      this.search = param ? param.searchQuery : this.search;
+      if (!param) {
+        param = {
+          searchType: "ALL",
+          searchQuery: this.search,
+          page: this.currentPage,
+          size: this.itemPerPage,
+        }
+      } else {
+        this.changeParamDate(param);
+      }
 
-      // 검색어로 필터링
-      let filtered = this.admins.filter((admin) =>
-          admin.email.includes(this.search)
-      );
       // axios 예시
-      // const response = await $axios.get("/admin/cafe/search", { param });
+      const response = await $axios.get("/admin/" + this.field + "/list", { params: param, returnInner: true });
+      const pageData = response.page;
+      const content = response.content;
 
-      const total = filtered.length;
-      const start = (page - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const items = filtered.slice(start, end);
+      this.totalItems = pageData.total;
+      this.serverItems = content;
+      this.currentPage = pageData.nowPage + 1;
+      this.itemPerPage = pageData.cntPerPage;
 
-      // API 호출을 흉내내기 위해 500ms 딜레이 후 결과 반환
-      setTimeout(() => {
-        this.serverItems = items;
-        this.totalItems = total;
-        this.loading = false;
-      }, 500);
+      this.loading = false;
     },
-    /**
-     * 검색어 변경 시 현재 페이지를 1로 초기화한 후 데이터를 재로딩합니다.
-     */
-    onSearch() {
-      this.currentPage = 1;
-      this.loadItems();
+
+    async saveItem() {
+      let response;
+      if (this.selectedItem.id) {
+        // 수정: 기존 데이터 갱신
+        response = await $axios.put(
+            "/admin/" + this.field + "/update",
+            { data: this.selectedItem }
+        );
+      } else {
+        // 생성: 새로운 카페 추가 (새로운 id 할당)
+        response = await $axios.post(
+            "/admin/" + this.field + "/create",
+            { data: this.selectedItem }
+        );
+      }
+      if (response.status !== 200) {
+        alert("수정에 실패했습니다.");
+        return;
+      }
+
+      // 로컬 데이터 업데이트
+      this.dialogDelete = false;
+      this.currentPage = 0;
+      await this.loadItems();
     },
-    /**
-     * 페이지 변경 시 데이터를 다시 로드합니다.
-     */
+
+    async deleteItem(id) {
+      const response = await $axios.delete("/admin/" + this.field + "/delete", { params: { id: id } });
+
+      if (response.status === 200) {
+        this.dialogDelete = false;
+        this.currentPage = 0;
+        await this.loadItems();
+      } else {
+        alert("삭제에 실패했습니다.");
+      }
+    },
+
+    searchData(param) {
+      this.currentPage = 0;
+      this.loadItems(param);
+    },
+
     onPageChange(page) {
-      this.currentPage = page;
+      this.currentPage = page - 1;
       this.loadItems();
     },
-    /**
-     * 테이블 행 클릭 시 해당 카페 정보를 모달에서 수정할 수 있도록 설정합니다.
-     */
+
+    changeParamDate(param) {
+      this.searchType = param.searchType;
+      this.search = param.searchQuery;
+      this.currentPage = param.page;
+      this.itemPerPage = param.size;
+    },
+
+    changeItemsPerPage(value) {
+      this.itemPerPage = value;
+      this.currentPage = 0;
+      this.loadItems();
+    },
+
+    popupDeleteSystemAdmin(item) {
+      this.selectedItem = item;
+      this.dialogDelete = true;
+    },
+
     popupModifySystemAdmin(adminId) {
-      const admin = this.admins.find((admin) => admin.id === adminId);
+      const admin = this.serverItems.find((admin) => admin.id === adminId);
       if (admin) {
-        this.selectedSystemAdmin = {
+        this.selectedItem = {
           ...admin,
           password: "",
         };
         this.dialog = true;
       }
     },
-    changeItemsPerPage(value) {
-      this.itemPerPage = value;
-      this.loadItems();
-    },
+
     popupCreateSystemAdmin() {
-      this.selectedSystemAdmin = {
-        id: null,
-        email: "",
-        password: "",
-        nickname: "",
-      };
+      this.selectedItem = useAdminPageStateStore().getSelectedItemForm("systemAdmin");
       this.dialog = true;
     },
-    /**
-     * 모달에서 수정 혹은 생성한 카페 정보를 저장합니다.
-     * 수정 시 기존 데이터를 업데이트하고, 생성 시 새로운 아이템을 추가합니다.
-     */
-    saveSystemAdmin() {
-      if (this.selectedSystemAdmin.id) {
-        // 수정: 기존 데이터 갱신
-        const index = this.admins.findIndex(
-            (admin) => admin.id === this.selectedSystemAdmin.id
-        );
-        if (index !== -1) {
-          this.admins.splice(index, 1, { ...this.selectedSystemAdmin });
-        }
-      } else {
-        // 생성: 새로운 카페 추가 (새로운 id 할당)
-        const newId =
-            this.admins.length > 0
-                ? Math.max(...this.admins.map((admin) => admin.id)) + 1
-                : 1;
-        const newAdmin = { ...this.selectedSystemAdmin, id: newId };
-        this.admins.push(newAdmin);
-      }
-      this.dialog = false;
-      // 데이터 변경 반영을 위해 다시 로드
-      this.loadItems();
-    },
-    searchData(param) {
-      console.log("검색어:", param);
-      this.currentPage = 1;
-      this.loadItems(param);
-    }
   },
   created() {
     // 초기 데이터 로드

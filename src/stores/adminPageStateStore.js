@@ -95,7 +95,51 @@ export const useAdminPageStateStore = defineStore("adminPageState", {
             {value: 10, title: '10'},
             {value: 25, title: '25'},
             {value: 50, title: '50'},
-        ]
+        ],
+        selectedItemForm: {
+            cafe: {
+                id: null,
+                name: "",
+                description: "",
+                address: "",
+                registrationDate: "",
+                manager: {
+                    id: null,
+                    userId: "",
+                }
+            },
+            member: {
+                id: null,
+                email: "",
+                phoneNumber: "",
+                nickname: "",
+                loginType: "",
+                TierType: "",
+                isDeleted: "",
+                registrationDate: "",
+                cafeAdmin: {
+                    id: null,
+                    cafeName: "",
+                }
+            },
+            comment: {
+                id: null,
+                content: "",
+                registrationDate: "",
+                blind: "",
+            },
+            feed: {
+                id: null,
+                title: "",
+                content: "",
+                registrationDate: new Date().toISOString().substr(0, 10),
+            },
+            systemAdmin: {
+                id: null,
+                email: "",
+                nickname: "",
+            },
+        }
     }),
     actions: {
         // 메뉴 선택
@@ -119,6 +163,9 @@ export const useAdminPageStateStore = defineStore("adminPageState", {
         // 페이지 종류에 따라 옵션을 반환합니다.
         getOptions(state) {
             return (type) => state.options[type] || [];
+        },
+        getSelectedItemForm(state) {
+            return (type) => state.selectedItemForm[type] || {};
         },
         // 개수 선택 옵션을 반환합니다.
         getItemsPerPageOptions(state) {
